@@ -1,0 +1,32 @@
+{
+  "patients": [
+    {
+      "id": 1778082579281,
+      "name": "Gowtham G",
+      "email": "g2004gowtham@gmail.com",
+      "contact": "9087801924",
+      "address": "Murugan Kovil Street",
+      "age": "21",
+      "gender": "Male",
+      "problem": "fever"
+    },
+    {
+      "id": 1778138055170,
+      "name": "arun",
+      "email": "arun@gmail.com",
+      "contact": "3245346546",
+      "address": "fsdgfasdgasdg",
+      "age": "21",
+      "gender": "Male",
+      "problem": "sgagasd"
+    }
+  ],
+  "feedbacks": [
+    {
+      "id": 1778128274513,
+      "name": "Gowtham G",
+      "email": "g2004gowtham@gmail.com",
+      "feedback": "Good"
+    }
+  ]
+}
