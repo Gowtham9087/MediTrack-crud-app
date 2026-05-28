@@ -12,7 +12,7 @@ function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [serverWaking, setServerWaking] = useState(false);
 
-  // Wake up backend when page loads
+  // Wake up backend silently when page loads — does NOT block login
   useEffect(() => {
     setServerWaking(true);
     fetch("https://meditrack-crud-app1.onrender.com")
@@ -146,7 +146,7 @@ function Login() {
               <h1 className="text-3xl font-black">Login to Account</h1>
             </div>
 
-            {/* Server waking up notice */}
+            {/* Server waking up notice — info only, does NOT block login */}
             {serverWaking && (
               <div className="mb-4 bg-blue-500/10 border border-blue-500/20 text-blue-400 px-4 py-3 rounded-2xl text-sm text-center font-semibold">
                 ⏳ Connecting to server, please wait...
@@ -219,13 +219,13 @@ function Login() {
               </div>
             )}
 
-            {/* Submit */}
+            {/* Submit — only disabled when actively logging in */}
             <button
               type="submit"
-              disabled={loading || serverWaking}
+              disabled={loading}
               className="w-full mt-6 py-4 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-base transition-all shadow-lg shadow-blue-500/20 active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              {loading ? "Logging in..." : serverWaking ? "Connecting..." : "Login"}
+              {loading ? "Logging in..." : "Login"}
             </button>
 
             <p className="text-center text-slate-600 text-xs mt-6">
