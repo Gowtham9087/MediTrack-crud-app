@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { API_URL } from "../api";
 import { Lock, Mail, Stethoscope, Eye, EyeOff } from "lucide-react";
@@ -10,6 +10,15 @@ function Login() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [serverWaking, setServerWaking] = useState(false);
+
+  // Wake up backend when page loads
+  useEffect(() => {
+    setServerWaking(true);
+    fetch("https://meditrack-crud-app1.onrender.com")
+      .then(() => setServerWaking(false))
+      .catch(() => setServerWaking(false));
+  }, []);
 
   const handleChange = (e) => {
     setLogin({ ...login, [e.target.name]: e.target.value });
@@ -69,7 +78,11 @@ function Login() {
 
     } catch (error) {
       console.log(error);
-      setError("Login failed. Please try again.");
+      if (error.message === "Failed to fetch") {
+        setError("Server is waking up, please wait 30 seconds and try again.");
+      } else {
+        setError("Login failed. Please try again.");
+      }
     }
 
     setLoading(false);
@@ -132,6 +145,13 @@ function Login() {
               <p className="text-blue-400 font-bold text-sm mb-1">Welcome Back</p>
               <h1 className="text-3xl font-black">Login to Account</h1>
             </div>
+
+            {/* Server waking up notice */}
+            {serverWaking && (
+              <div className="mb-4 bg-blue-500/10 border border-blue-500/20 text-blue-400 px-4 py-3 rounded-2xl text-sm text-center font-semibold">
+                ⏳ Connecting to server, please wait...
+              </div>
+            )}
 
             {/* Email */}
             <div className="mb-4">
@@ -202,10 +222,10 @@ function Login() {
             {/* Submit */}
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || serverWaking}
               className="w-full mt-6 py-4 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-base transition-all shadow-lg shadow-blue-500/20 active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              {loading ? "Logging in..." : "Login"}
+              {loading ? "Logging in..." : serverWaking ? "Connecting..." : "Login"}
             </button>
 
             <p className="text-center text-slate-600 text-xs mt-6">
