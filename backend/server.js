@@ -25,7 +25,7 @@ const billingRoutes = require("./routes/billingRoutes");
 const pharmacyRoutes = require("./routes/pharmacyRoutes");
 const labRoutes = require("./routes/labRoutes");
 const scheduleRoutes = require("./routes/scheduleRoutes");
-const PrescriptionRoutes = require("./routes/Prescriptionroutes"); // ✅ ADDED
+const PrescriptionRoutes = require("./routes/prescriptionroutes"); // ✅ ADDED
 const authMiddleware = require("./middleware/authMiddleware");
 
 dotenv.config();
