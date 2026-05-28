@@ -25,7 +25,7 @@ const billingRoutes = require("./routes/billingRoutes");
 const pharmacyRoutes = require("./routes/pharmacyRoutes");
 const labRoutes = require("./routes/labRoutes");
 const scheduleRoutes = require("./routes/scheduleRoutes");
-const prescriptionRoutes = require("./routes/prescriptionRoutes"); // ✅ ADDED
+const PrescriptionRoutes = require("./routes/prescriptionRoutes"); // ✅ ADDED
 const authMiddleware = require("./middleware/authMiddleware");
 
 dotenv.config();
@@ -47,7 +47,7 @@ app.use("/api/billing", billingRoutes);
 app.use("/api/pharmacy", pharmacyRoutes);
 app.use("/api/laboratory", labRoutes);
 app.use("/api/schedules", scheduleRoutes);
-app.use("/api/prescriptions", prescriptionRoutes); // ✅ ADDED
+app.use("/api/prescriptions", PrescriptionRoutes); // ✅ ADDED
 
 // Direct doctors route for calendar etc.
 app.get("/api/doctors", authMiddleware, async (req, res) => {
