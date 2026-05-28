@@ -12,7 +12,7 @@ const User = require("./models/mysql/User");
 const Doctor = require("./models/mysql/Doctor");
 const Appointment = require("./models/mysql/Appointment");
 const LabTest = require("./models/mysql/LabTest");
-const Prescription = require("./models/mysql/Prescription"); // ✅ ADDED
+const Prescription = require("./models/mysql/Prescription");
 
 // --- ROUTES ---
 const patientRoutes = require("./routes/patientRoutes");
@@ -25,13 +25,20 @@ const billingRoutes = require("./routes/billingRoutes");
 const pharmacyRoutes = require("./routes/pharmacyRoutes");
 const labRoutes = require("./routes/labRoutes");
 const scheduleRoutes = require("./routes/scheduleRoutes");
-const PrescriptionRoutes = require("./routes/prescriptionroutes"); // ✅ ADDED
+const PrescriptionRoutes = require("./routes/prescriptionroutes");
 const authMiddleware = require("./middleware/authMiddleware");
 
 dotenv.config();
 
 const app = express();
-app.use(cors());
+
+// ✅ CORS
+app.use(cors({
+  origin: "*",
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+}));
+
 app.use(express.json());
 
 connectMongoDB();
@@ -47,9 +54,9 @@ app.use("/api/billing", billingRoutes);
 app.use("/api/pharmacy", pharmacyRoutes);
 app.use("/api/laboratory", labRoutes);
 app.use("/api/schedules", scheduleRoutes);
-app.use("/api/prescriptions", PrescriptionRoutes); // ✅ ADDED
+app.use("/api/prescriptions", PrescriptionRoutes);
 
-// Direct doctors route for calendar etc.
+// Direct doctors route
 app.get("/api/doctors", authMiddleware, async (req, res) => {
   try {
     const doctors = await Doctor.findAll();
