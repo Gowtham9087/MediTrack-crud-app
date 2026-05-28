@@ -24,7 +24,7 @@ import UserBilling from "./Pages/user/UserBilling";
 import UserCalendar from "./Pages/user/UserCalendar";
 import UserAppointments from "./Pages/user/UserAppointments";
 import UserSettings from "./Pages/user/UserSettings";
-import PatientPrescriptions from './pages/user/PatientPrescriptions';
+import PatientPrescriptions from './Pages/user/PatientPrescriptions';
 
 // Doctor Pages
 import DoctorDashboard from "./Pages/doctors/DoctorDashboard";
