@@ -1,9 +1,32 @@
 import { useEffect, useState } from "react";
 import { API_URL } from "../api";
 
+import {
+  Users,
+  CalendarDays,
+  CreditCard,
+  Stethoscope,
+  Activity,
+} from "lucide-react";
+
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  BarChart,
+  Bar,
+} from "recharts";
+
 function Dashboard() {
   const [stats, setStats] = useState(null);
-  
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
     const fetchDashboard = async () => {
       try {
@@ -13,157 +36,240 @@ function Dashboard() {
           },
         });
 
-        const data = await res.json();
-        setStats(data);
+        if (res.ok) {
+          const data = await res.json();
+          setStats(data);
+        }
       } catch (error) {
-        console.log(error);
+        console.error("Error fetching live dashboard metrics:", error);
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchDashboard();
   }, []);
 
-  if (!stats) {
+  if (loading) {
     return (
-      <div className="min-h-[calc(100vh-80px)] flex items-center justify-center bg-[#020617] text-white text-2xl font-bold">
-        Loading Dashboard...
+      <div className="min-h-screen bg-[#020817] flex items-center justify-center text-white">
+        <p className="text-lg font-semibold animate-pulse text-blue-400">
+          Loading Live Hospital Analytics...
+        </p>
       </div>
     );
   }
 
-  const cards = [
-    { title: "Total Patients", value: stats.totalPatients, icon: "👥" },
-    { title: "Total Feedbacks", value: stats.totalFeedbacks, icon: "💬" },
-    { title: "Total Logs", value: stats.totalLogs, icon: "📋" },
-    { title: "Male Patients", value: stats.maleCount, icon: "👨" },
-    { title: "Female Patients", value: stats.femaleCount, icon: "👩" },
+  // Fallback defaults if stats fails to load properties cleanly
+  const currentStats = stats || {
+    totalPatients: 0,
+    totalAppointments: 0,
+    totalRevenue: 0,
+    totalDoctors: 0,
+    maleCount: 0,
+    femaleCount: 0,
+  };
+
+  // Connected all cards to live backend data streams (Critical metrics removed)
+  const topCards = [
+    {
+      title: "Total Patients",
+      value: currentStats.totalPatients,
+      icon: Users,
+      color: "bg-blue-600",
+    },
+    {
+      title: "Appointments",
+      value: currentStats.totalAppointments,
+      icon: CalendarDays,
+      color: "bg-purple-600",
+    },
+    {
+      title: "Total Revenue",
+      value: `₹${Number(currentStats.totalRevenue || 0).toLocaleString("en-IN")}`,
+      icon: CreditCard,
+      color: "bg-emerald-600",
+    },
+    {
+      title: "Doctors",
+      value: currentStats.totalDoctors,
+      icon: Stethoscope,
+      color: "bg-orange-500",
+    },
+  ];
+
+  const patientTrend = currentStats.patientTrend || [
+    { day: "Mon", value: 0 },
+    { day: "Tue", value: 0 },
+    { day: "Wed", value: 0 },
+    { day: "Thu", value: 0 },
+    { day: "Fri", value: 0 },
+    { day: "Sat", value: 0 },
+    { day: "Sun", value: 0 },
+  ];
+
+  const appointmentData = currentStats.appointmentTrend || [
+    { week: "Week 1", value: 0 },
+    { week: "Week 2", value: 0 },
+    { week: "Week 3", value: 0 },
+    { week: "Week 4", value: 0 },
+  ];
+
+  const genderData = [
+    { name: "Male", value: currentStats.maleCount || 0 },
+    { name: "Female", value: currentStats.femaleCount || 0 },
   ];
 
   return (
-    <div
-      className="min-h-[calc(100vh-80px)] relative overflow-hidden px-4 sm:px-6 py-10"
-      style={{
-        backgroundImage: "url('/doctor5.jpg')",
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-      }}
-    >
-      <div className="absolute inset-0 bg-[#020617]/75 backdrop-blur-[3px]" />
-
-      <div className="relative z-10 max-w-7xl mx-auto">
-        <div className="text-center mb-10">
-          <p className="inline-block mb-3 px-4 py-2 rounded-full bg-cyan-400/10 border border-cyan-400/20 text-cyan-200 text-sm font-semibold">
-            Admin Overview
-          </p>
-
-          <h1 className="text-3xl sm:text-5xl font-extrabold text-white">
-            Admin Dashboard
+    <div className="min-h-screen bg-[#020817] text-white px-5 py-5">
+      <div className="max-w-[1650px] mx-auto space-y-5">
+        <div>
+          <h1 className="text-3xl font-black">
+            Welcome back, <span className="text-blue-500">Admin</span> 👋
           </h1>
-
-          <p className="text-cyan-100 mt-3 text-sm sm:text-base">
-            Track patients, feedbacks and activity logs in one place
+          <p className="text-slate-400 mt-1">
+            Here&apos;s what&apos;s happening in your hospital today.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-5 mb-8">
-          {cards.map((card) => (
-            <div
-              key={card.title}
-              className="bg-white/10 backdrop-blur-2xl border border-white/15 rounded-3xl p-6 text-white shadow-2xl hover:-translate-y-1 transition-all duration-300"
-            >
-              <div className="flex items-center justify-between mb-5">
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-r from-cyan-500 to-purple-500 flex items-center justify-center text-2xl shadow-lg">
-                  {card.icon}
-                </div>
+        {/* Real-time Cards Grid Container (Changed layout columns count from xl:grid-cols-5 to xl:grid-cols-4) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+          {topCards.map((card) => {
+            const Icon = card.icon;
 
-                <span className="text-xs px-3 py-1 rounded-full bg-cyan-400/10 text-cyan-200 border border-cyan-400/20">
-                  Live
-                </span>
-              </div>
-
-              <h2 className="text-slate-300 text-sm font-medium">
-                {card.title}
-              </h2>
-
-              <p className="text-4xl font-extrabold mt-2">{card.value}</p>
-            </div>
-          ))}
-        </div>
-
-        <div className="bg-white/10 backdrop-blur-2xl border border-white/15 rounded-3xl p-5 sm:p-8 text-white shadow-2xl mb-8">
-          <h2 className="text-2xl sm:text-3xl font-bold mb-6">
-            Recent Activities
-          </h2>
-
-          <div className="space-y-4">
-            {stats.recentLogs?.map((log) => (
+            return (
               <div
-                key={log._id}
-                className="bg-white/10 border border-white/10 p-4 rounded-2xl flex flex-col md:flex-row md:items-center md:justify-between gap-2 hover:bg-cyan-500/10 transition-all"
+                key={card.title}
+                className="rounded-3xl border border-[#1e293b] bg-[#0f172a] p-5 shadow-sm"
               >
-                <span className="text-slate-100">{log.details}</span>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-slate-400 text-sm font-medium">{card.title}</p>
+                    <h2 className="text-3xl font-black mt-2 tracking-tight">
+                      {card.value}
+                    </h2>
+                  </div>
 
-                <span className="text-cyan-300 text-sm">
-                  {new Date(log.createdAt).toLocaleString()}
-                </span>
+                  <div
+                    className={`w-14 h-14 rounded-2xl ${card.color} flex items-center justify-center text-white shadow-lg`}
+                  >
+                    <Icon size={25} />
+                  </div>
+                </div>
               </div>
-            ))}
+            );
+          })}
+        </div>
 
-            {stats.recentLogs?.length === 0 && (
-              <p className="text-cyan-200">No recent activities found</p>
-            )}
+        {/* Analytics Graphics Layout Blocks */}
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
+          <div className="rounded-3xl border border-[#1e293b] bg-[#0f172a] p-5 min-w-0">
+            <h2 className="text-xl font-black">Patient Trend</h2>
+            <p className="text-slate-400 text-sm mt-1">This week overview</p>
+
+            <div className="h-[260px] min-w-0 mt-5">
+              <ResponsiveContainer width="99%" height={260}>
+                <AreaChart data={patientTrend}>
+                  <XAxis dataKey="day" stroke="#94a3b8" />
+                  <YAxis stroke="#94a3b8" />
+                  <Tooltip />
+                  <Area
+                    type="monotone"
+                    dataKey="value"
+                    stroke="#2563eb"
+                    fill="#2563eb"
+                    fillOpacity={0.15}
+                    strokeWidth={3}
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          <div className="rounded-3xl border border-[#1e293b] bg-[#0f172a] p-5 min-w-0">
+            <h2 className="text-xl font-black">Gender Distribution</h2>
+            <p className="text-slate-400 text-sm mt-1">Patient demographics ratio</p>
+
+            <div className="h-[260px] min-w-0 mt-5 flex items-center justify-center">
+              <ResponsiveContainer width="99%" height={240}>
+                <PieChart>
+                  <Pie
+                    data={genderData}
+                    dataKey="value"
+                    innerRadius={65}
+                    outerRadius={90}
+                    paddingAngle={4}
+                  >
+                    <Cell fill="#2563eb" />
+                    <Cell fill="#ec4899" />
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+
+            <div className="flex justify-center gap-8 text-sm font-bold mt-2">
+              <p>
+                <span className="text-blue-500 mr-1.5">●</span> Male{" "}
+                {currentStats.maleCount || 0}
+              </p>
+              <p>
+                <span className="text-pink-500 mr-1.5">●</span> Female{" "}
+                {currentStats.femaleCount || 0}
+              </p>
+            </div>
+          </div>
+
+          <div className="rounded-3xl border border-[#1e293b] bg-[#0f172a] p-5 min-w-0">
+            <h2 className="text-xl font-black">Appointments</h2>
+            <p className="text-slate-400 text-sm mt-1">Monthly overview</p>
+
+            <div className="h-[260px] min-w-0 mt-5">
+              <ResponsiveContainer width="99%" height={260}>
+                <BarChart data={appointmentData}>
+                  <XAxis dataKey="week" stroke="#94a3b8" />
+                  <YAxis stroke="#94a3b8" />
+                  <Tooltip />
+                  <Bar dataKey="value" fill="#2563eb" radius={[8, 8, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="bg-white/10 backdrop-blur-2xl border border-white/15 rounded-3xl p-5 sm:p-8 text-white shadow-2xl">
-            <h2 className="text-2xl sm:text-3xl font-bold mb-6">
-              Activity Summary
-            </h2>
-
-            <div className="space-y-4">
-              {stats.activitySummary?.map((item) => (
-                <div
-                  key={item._id}
-                  className="bg-white/10 border border-white/10 p-4 rounded-2xl flex justify-between items-center"
-                >
-                  <span>{item._id}</span>
-
-                  <span className="text-cyan-300 font-bold text-xl">
-                    {item.count}
-                  </span>
-                </div>
-              ))}
-
-              {stats.activitySummary?.length === 0 && (
-                <p className="text-cyan-200">No activity summary found</p>
-              )}
+        {/* Real-time Logs Feed Container */}
+        <div className="rounded-3xl border border-[#1e293b] bg-[#0f172a] p-5 min-w-0">
+          <div className="flex items-center justify-between mb-5">
+            <div>
+              <h2 className="text-xl font-black">Recent Activities</h2>
+              <p className="text-slate-400 text-sm">Latest system actions</p>
             </div>
           </div>
 
-          <div className="bg-white/10 backdrop-blur-2xl border border-white/15 rounded-3xl p-5 sm:p-8 text-white shadow-2xl">
-            <h2 className="text-2xl sm:text-3xl font-bold mb-6">
-              Feedback Summary
-            </h2>
-
-            <div className="space-y-4">
-              {stats.feedbackSummary?.map((item) => (
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+            {currentStats.recentLogs && currentStats.recentLogs.length > 0 ? (
+              currentStats.recentLogs.slice(0, 4).map((log) => (
                 <div
-                  key={item._id}
-                  className="bg-white/10 border border-white/10 p-4 rounded-2xl flex justify-between items-center"
+                  key={log._id || log.id}
+                  className="rounded-2xl bg-[#020817] border border-[#1e293b] p-4 flex items-center gap-3"
                 >
-                  <span>{item._id}</span>
+                  <div className="w-11 h-11 rounded-2xl bg-blue-600/20 text-blue-400 flex items-center justify-center shrink-0">
+                    <Activity size={19} />
+                  </div>
 
-                  <span className="text-cyan-300 font-bold text-xl">
-                    {item.totalFeedbacks}
-                  </span>
+                  <div>
+                    <p className="font-semibold text-sm">{log.details}</p>
+                    <p className="text-slate-500 text-xs mt-0.5">
+                      {new Date(log.createdAt || log.time).toLocaleString("en-IN")}
+                    </p>
+                  </div>
                 </div>
-              ))}
-
-              {stats.feedbackSummary?.length === 0 && (
-                <p className="text-cyan-200">No feedback summary found</p>
-              )}
-            </div>
+              ))
+            ) : (
+              <p className="text-slate-500 text-sm p-4 col-span-2">
+                No recent system actions found.
+              </p>
+            )}
           </div>
         </div>
       </div>

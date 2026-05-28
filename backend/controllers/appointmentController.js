@@ -1,3 +1,4 @@
+const bcrypt = require("bcryptjs");
 const sequelize = require("../config/mysql");
 const Patient = require("../models/mysql/Patient");
 const Doctor = require("../models/mysql/Doctor");
@@ -6,7 +7,19 @@ const ActivityLog = require("../models/mongo/ActivityLog");
 
 exports.addDoctor = async (req, res) => {
   try {
-    const doctor = await Doctor.create(req.body);
+    const { name, specialization, email, phone } = req.body;
+
+    // Hash phone number as default password
+    const hashedPassword = await bcrypt.hash(phone, 10);
+
+    const doctor = await Doctor.create({
+      name,
+      specialization,
+      email,
+      phone,
+      password: hashedPassword,
+      role: "doctor",
+    });
 
     await ActivityLog.create({
       action: "DOCTOR_ADDED",
@@ -17,6 +30,7 @@ exports.addDoctor = async (req, res) => {
 
     res.status(201).json(doctor);
   } catch (error) {
+    console.error("Add doctor error:", error);
     res.status(400).json({ message: "Doctor already exists or invalid data" });
   }
 };
@@ -33,10 +47,7 @@ exports.getDoctors = async (req, res) => {
 exports.updateDoctor = async (req, res) => {
   try {
     const doctor = await Doctor.findByPk(req.params.id);
-
-    if (!doctor) {
-      return res.status(404).json({ message: "Doctor not found" });
-    }
+    if (!doctor) return res.status(404).json({ message: "Doctor not found" });
 
     await doctor.update(req.body);
 
@@ -56,10 +67,7 @@ exports.updateDoctor = async (req, res) => {
 exports.deleteDoctor = async (req, res) => {
   try {
     const doctor = await Doctor.findByPk(req.params.id);
-
-    if (!doctor) {
-      return res.status(404).json({ message: "Doctor not found" });
-    }
+    if (!doctor) return res.status(404).json({ message: "Doctor not found" });
 
     const appointmentCount = await Appointment.count({
       where: { doctorId: req.params.id },
@@ -88,10 +96,8 @@ exports.deleteDoctor = async (req, res) => {
 
 exports.bookAppointment = async (req, res) => {
   const transaction = await sequelize.transaction();
-
   try {
-    const { patientId, doctorId, appointmentDate, appointmentTime, reason } =
-      req.body;
+    const { patientId, doctorId, appointmentDate, appointmentTime, reason } = req.body;
 
     const patient = await Patient.findByPk(patientId);
     const doctor = await Doctor.findByPk(doctorId);
@@ -102,11 +108,7 @@ exports.bookAppointment = async (req, res) => {
     }
 
     const existingAppointment = await Appointment.findOne({
-      where: {
-        doctorId,
-        appointmentDate,
-        appointmentTime,
-      },
+      where: { doctorId, appointmentDate, appointmentTime },
     });
 
     if (existingAppointment) {
@@ -117,14 +119,7 @@ exports.bookAppointment = async (req, res) => {
     }
 
     const appointment = await Appointment.create(
-      {
-        patientId,
-        doctorId,
-        appointmentDate,
-        appointmentTime,
-        reason,
-        status: "Booked",
-      },
+      { patientId, doctorId, appointmentDate, appointmentTime, reason, status: "Booked" },
       { transaction }
     );
 
@@ -136,7 +131,6 @@ exports.bookAppointment = async (req, res) => {
     });
 
     await transaction.commit();
-
     res.status(201).json(appointment);
   } catch (error) {
     await transaction.rollback();
@@ -148,18 +142,11 @@ exports.getAppointments = async (req, res) => {
   try {
     const appointments = await Appointment.findAll({
       include: [
-        {
-          model: Patient,
-          attributes: ["id", "name", "email", "contact", "problem"],
-        },
-        {
-          model: Doctor,
-          attributes: ["id", "name", "specialization", "email"],
-        },
+        { model: Patient, attributes: ["id", "name", "email", "contact", "problem"] },
+        { model: Doctor, attributes: ["id", "name", "specialization", "email"] },
       ],
       order: [["createdAt", "DESC"]],
     });
-
     res.json(appointments);
   } catch (error) {
     res.status(500).json({ message: "Failed to fetch appointments" });
@@ -169,10 +156,7 @@ exports.getAppointments = async (req, res) => {
 exports.updateAppointment = async (req, res) => {
   try {
     const appointment = await Appointment.findByPk(req.params.id);
-
-    if (!appointment) {
-      return res.status(404).json({ message: "Appointment not found" });
-    }
+    if (!appointment) return res.status(404).json({ message: "Appointment not found" });
 
     await appointment.update(req.body);
 
@@ -192,12 +176,8 @@ exports.updateAppointment = async (req, res) => {
 exports.updateAppointmentStatus = async (req, res) => {
   try {
     const { status } = req.body;
-
     const appointment = await Appointment.findByPk(req.params.id);
-
-    if (!appointment) {
-      return res.status(404).json({ message: "Appointment not found" });
-    }
+    if (!appointment) return res.status(404).json({ message: "Appointment not found" });
 
     appointment.status = status;
     await appointment.save();
@@ -218,10 +198,7 @@ exports.updateAppointmentStatus = async (req, res) => {
 exports.deleteAppointment = async (req, res) => {
   try {
     const appointment = await Appointment.findByPk(req.params.id);
-
-    if (!appointment) {
-      return res.status(404).json({ message: "Appointment not found" });
-    }
+    if (!appointment) return res.status(404).json({ message: "Appointment not found" });
 
     await appointment.destroy();
 

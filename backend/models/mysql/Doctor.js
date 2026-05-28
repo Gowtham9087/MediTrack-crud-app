@@ -19,6 +19,23 @@ const Doctor = sequelize.define("Doctor", {
     type: DataTypes.STRING,
     allowNull: false,
   },
+  workingHours: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
+  status: {
+    type: DataTypes.STRING,
+    defaultValue: "Available",
+  },
+  // ✅ NEW
+  password: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
+  role: {
+    type: DataTypes.STRING,
+    defaultValue: "doctor",
+  },
 });
 
 module.exports = Doctor;

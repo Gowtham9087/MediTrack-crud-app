@@ -1,1 +1,132 @@
 @import "tailwindcss";
+
+/* Enable class-based dark mode toggle for Tailwind CSS v4 */
+@variant dark (&:where(.dark, .dark *));
+
+* {
+  box-sizing: border-box;
+}
+
+button {
+  cursor: pointer;
+}
+
+/* --- 1. GLOBAL BASE RESETS & THEME ALIGNMENT --- */
+body {
+  margin: 0;
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background-color: #f4f6fa;
+  color: #0f172a;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html.dark body {
+  background-color: #020817;
+  color: #ffffff;
+}
+
+/* --- 2. UNIVERSAL SLEEK SCROLLBAR ENGINE (For Sidebars & Tables) --- */
+/* Target any scrollable element globally so clunky native gray tracks never appear */
+::-webkit-scrollbar {
+  width: 5px;  /* Vertical scrollbar thinness */
+  height: 5px; /* Horizontal table scrollbar thinness */
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Scrollbar thumb style for Dark Mode */
+html.dark ::-webkit-scrollbar-thumb {
+  background: #1e293b;
+  border-radius: 999px;
+}
+html.dark ::-webkit-scrollbar-thumb:hover {
+  background: #2563eb;
+}
+
+/* Scrollbar thumb style for Light Mode */
+html:not(.dark) ::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 999px;
+}
+html:not(.dark) ::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* --- 3. GLOBAL LIGHT MODE INTERCEPTOR ENGINE --- */
+html:not(.dark) {
+  .bg-\[\#020817\], [class*="bg-[#020817]"],
+  .bg-\[\#f5f7fb\], [class*="bg-[#f5f7fb]"] {
+    background-color: #f4f6fa !important;
+  }
+
+  .bg-\[\#0f172a\], [class*="bg-[#0f172a]"],
+  .bg-\[\#111827\], [class*="bg-[#111827]"] {
+    background-color: #ffffff !important;
+  }
+
+  .bg-slate-50, .dark\:bg-slate-800, 
+  [class*="bg-slate-50"], [class*="bg-[#020817]"] input, 
+  [class*="bg-[#020817]"] select {
+    background-color: #f8fafc !important;
+    color: #0f172a !important;
+  }
+
+  .border-\[\#1e293b\], [class*="border-[#1e293b]"],
+  .border-slate-100, .border-slate-200 {
+    border-color: #e2e8f0 !important;
+  }
+
+  .text-white, [class*="text-white"],
+  .text-slate-900, .dark\:text-white {
+    color: #0f172a !important;
+  }
+  
+  .text-slate-300, [class*="text-slate-300"] {
+    color: #334155 !important;
+  }
+  
+  .text-slate-400, [class*="text-slate-400"],
+  .text-slate-500, [class*="text-slate-500"] {
+    color: #475569 !important;
+  }
+}
+
+/* --- 4. GLOBAL DARK MODE PROTECTION TUNING --- */
+html.dark {
+  .bg-white, [class*="bg-white"] {
+    background-color: #0f172a !important;
+    color: #ffffff !important;
+  }
+  
+  .bg-slate-50, [class*="bg-slate-50"] {
+    background-color: #020817 !important;
+    color: #ffffff !important;
+  }
+
+  .text-slate-800, .text-slate-900 {
+    color: #f1f5f9 !important;
+  }
+
+  input::placeholder, textarea::placeholder {
+    color: #64748b !important;
+  }
+}
+
+/* --- 5. CLEAN TEXT INPUT FIELDS & SPINNERS --- */
+input, select, textarea {
+  transition: all 0.2s ease;
+}
+
+.no-spinner::-webkit-outer-spin-button,
+.no-spinner::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.no-spinner[type="number"] {
+  -moz-appearance: textfield;
+}

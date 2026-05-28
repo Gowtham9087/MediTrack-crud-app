@@ -1,5 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { API_URL } from "../api";
+import { MessageSquare } from "lucide-react";
+
+import EmptyState from "../components/ui/EmptyState";
+import FeedbackTable from "../components/tables/FeedbackTable";
+import DeleteFeedbackModal from "../components/feedback/DeleteFeedbackModal";
 
 function AdminFeedback() {
   const [feedbacks, setFeedbacks] = useState([]);
@@ -20,14 +25,11 @@ function AdminFeedback() {
       const res = await fetch(`${API_URL}/feedbacks`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-
       const data = await res.json();
-
       if (!res.ok) {
         showToast(data.message || "Failed to fetch feedbacks ❌");
         return;
       }
-
       setFeedbacks(data);
     } catch (err) {
       console.log(err);
@@ -36,12 +38,7 @@ function AdminFeedback() {
   };
 
   useEffect(() => {
-    const fetchData = async () => {
-      await fetchFeedbacks();
-    };
-
-    fetchData();
-
+    fetchFeedbacks();
     return () => {
       if (toastTimer.current) clearTimeout(toastTimer.current);
     };
@@ -53,15 +50,13 @@ function AdminFeedback() {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
-
       const data = await res.json();
-
       if (!res.ok) {
         showToast(data.message || "Delete failed ❌");
         return;
       }
-
       showToast("Feedback deleted ✔️");
+      setDeleteId(null);
       fetchFeedbacks();
     } catch (err) {
       console.log(err);
@@ -70,154 +65,56 @@ function AdminFeedback() {
   };
 
   return (
-    <div
-      className="min-h-[calc(100vh-80px)] relative overflow-hidden px-4 sm:px-6 py-10"
-      style={{
-        backgroundImage: "url('/doctor5.jpg')",
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-      }}
-    >
-      <div className="absolute inset-0 bg-[#020617]/75 backdrop-blur-[3px]" />
-
+    <div className="min-h-screen bg-slate-50 dark:bg-[#020817] text-slate-900 dark:text-white px-6 py-5 relative">
+      {/* Toast */}
       {toast && (
-        <div className="fixed top-24 right-4 left-4 sm:left-auto sm:right-6 z-[99999] bg-gradient-to-r from-cyan-500 to-purple-500 text-white px-5 py-4 rounded-2xl shadow-2xl font-semibold text-center">
+        <div className="fixed top-24 right-6 z-[99999] bg-white dark:bg-[#0f172a] border border-slate-200 dark:border-[#1e293b] text-slate-900 dark:text-white px-5 py-4 rounded-2xl shadow-xl font-semibold animate-in slide-in-from-right-10 fade-in duration-300">
           {toast}
         </div>
       )}
 
-      <div className="relative z-10 max-w-6xl mx-auto">
-        <div className="text-center mb-8">
-          <p className="inline-block mb-3 px-4 py-2 rounded-full bg-cyan-400/10 border border-cyan-400/20 text-cyan-200 text-sm font-semibold">
-            Feedback Management
-          </p>
+      <div className="max-w-[1650px] mx-auto">
 
-          <h1 className="text-3xl sm:text-5xl font-extrabold text-white">
-            User Feedback List
-          </h1>
-
-          <p className="text-cyan-100 mt-3 text-sm sm:text-base">
-            View and manage feedback submitted by users
-          </p>
-        </div>
-
-        <div className="bg-white/10 backdrop-blur-2xl border border-white/15 p-5 sm:p-8 rounded-3xl shadow-2xl text-white">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold">Feedbacks</h2>
-            <p className="text-cyan-200 font-semibold">
-              Total: {feedbacks.length}
+        {/* Header */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-4">
+          <div>
+            <p className="text-blue-500 font-bold mb-1 text-sm">Feedback Management</p>
+            <h1 className="text-3xl sm:text-4xl font-black tracking-tight">User Feedbacks</h1>
+            <p className="text-slate-500 dark:text-slate-400 mt-1.5 text-sm">
+              View and manage feedback submitted by patients.
             </p>
           </div>
+        </div>
 
-          <div className="hidden lg:block overflow-x-auto">
-            <table className="w-full min-w-[850px] text-left border-separate border-spacing-y-3">
-              <thead>
-                <tr className="bg-white/10 text-cyan-300">
-                  <th className="px-4 py-4 rounded-l-2xl">#</th>
-                  <th className="px-4 py-4">Name</th>
-                  <th className="px-4 py-4">Email</th>
-                  <th className="px-4 py-4">Feedback</th>
-                  <th className="px-4 py-4 rounded-r-2xl">Action</th>
-                </tr>
-              </thead>
-
-              <tbody>
-                {feedbacks.map((f, i) => (
-                  <tr
-                    key={f._id || f.id}
-                    className="bg-white/5 hover:bg-cyan-500/10 transition-all"
-                  >
-                    <td className="px-4 py-4 rounded-l-2xl">{i + 1}</td>
-                    <td className="px-4 py-4 font-semibold">{f.name}</td>
-                    <td className="px-4 py-4">{f.email}</td>
-                    <td className="px-4 py-4">{f.feedback}</td>
-
-                    <td className="px-4 py-4 rounded-r-2xl">
-                      <button
-                        onClick={() => setDeleteId(f._id || f.id)}
-                        className="bg-gradient-to-r from-red-500 to-pink-500 hover:scale-105 transition-all text-white px-4 py-2 rounded-xl shadow-lg"
-                      >
-                        Delete
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        {/* Badge */}
+        <div className="mb-5 pl-1">
+          <div className="inline-flex items-center gap-2.5 bg-white dark:bg-[#0f172a] border border-slate-200 dark:border-[#1e293b] px-3.5 py-1.5 rounded-xl shadow-sm">
+            <MessageSquare size={14} className="text-blue-500" />
+            <span className="text-slate-500 text-[10px] font-bold uppercase tracking-wider">Total Feedbacks</span>
+            <span className="text-sm font-black text-slate-900 dark:text-white leading-none">{feedbacks.length}</span>
           </div>
+        </div>
 
-          <div className="grid grid-cols-1 gap-4 lg:hidden">
-            {feedbacks.map((f, i) => (
-              <div
-                key={f._id || f.id}
-                className="bg-white/10 border border-white/10 rounded-3xl p-5 shadow-xl"
-              >
-                <p className="text-xs text-cyan-300 font-semibold">
-                  Feedback #{i + 1}
-                </p>
-
-                <h2 className="text-xl font-bold mt-1">{f.name}</h2>
-                <p className="text-sm text-slate-300">{f.email}</p>
-
-                <p className="mt-4 text-slate-100 leading-relaxed">
-                  {f.feedback}
-                </p>
-
-                <button
-                  onClick={() => setDeleteId(f._id || f.id)}
-                  className="w-full mt-5 bg-gradient-to-r from-red-500 to-pink-500 px-4 py-3 rounded-2xl font-semibold"
-                >
-                  Delete
-                </button>
-              </div>
-            ))}
-          </div>
-
-          {feedbacks.length === 0 && (
-            <div className="text-center mt-10">
-              <p className="text-2xl text-cyan-200 mb-2">
-                No Feedback Available
-              </p>
-              <p className="text-slate-300">
-                User feedback will appear here once submitted
-              </p>
+        {/* Table */}
+        <div className="bg-white dark:bg-[#0f172a] rounded-2xl border border-slate-200 dark:border-[#1e293b] shadow-sm overflow-x-auto">
+          {feedbacks.length > 0 ? (
+            <FeedbackTable feedbacks={feedbacks} setDeleteId={setDeleteId} />
+          ) : (
+            <div className="p-8">
+              <EmptyState
+                title="No Feedback Available"
+                description="User feedback will appear here once submitted."
+              />
             </div>
           )}
         </div>
       </div>
 
-      {deleteId && (
-        <div className="fixed inset-0 bg-black/75 backdrop-blur-sm flex justify-center items-center z-[9998] px-4">
-          <div className="bg-[#0B1120]/90 backdrop-blur-2xl border border-white/15 text-white p-6 sm:p-8 rounded-3xl w-full max-w-md text-center shadow-2xl">
-            <h2 className="text-2xl sm:text-3xl font-bold mb-4">
-              Confirm Delete
-            </h2>
-
-            <p className="mb-6 text-slate-300">
-              Are you sure you want to delete this feedback?
-            </p>
-
-            <div className="flex flex-col sm:flex-row justify-center gap-4">
-              <button
-                onClick={() => setDeleteId(null)}
-                className="bg-slate-600 hover:bg-slate-500 px-5 py-3 rounded-2xl"
-              >
-                Cancel
-              </button>
-
-              <button
-                onClick={() => {
-                  deleteFeedback(deleteId);
-                  setDeleteId(null);
-                }}
-                className="bg-gradient-to-r from-red-500 to-pink-500 px-5 py-3 rounded-2xl font-semibold"
-              >
-                Yes, Delete
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <DeleteFeedbackModal
+        deleteId={deleteId}
+        setDeleteId={setDeleteId}
+        deleteFeedback={deleteFeedback}
+      />
     </div>
   );
 }

@@ -16,32 +16,17 @@ const {
 const authMiddleware = require("../middleware/authMiddleware");
 const roleMiddleware = require("../middleware/roleMiddleware");
 
+// --- DOCTOR ROUTES ---
 router.post("/doctors", authMiddleware, roleMiddleware("admin"), addDoctor);
-
-router.get("/doctors", authMiddleware, roleMiddleware("admin"), getDoctors);
-
+router.get("/doctors", authMiddleware, getDoctors);
 router.put("/doctors/:id", authMiddleware, roleMiddleware("admin"), updateDoctor);
+router.delete("/doctors/:id", authMiddleware, roleMiddleware("admin"), deleteDoctor);
 
-router.delete(
-  "/doctors/:id",
-  authMiddleware,
-  roleMiddleware("admin"),
-  deleteDoctor
-);
-
-router.post("/", authMiddleware, roleMiddleware("admin"), bookAppointment);
-
-router.get("/", authMiddleware, roleMiddleware("admin"), getAppointments);
-
+// --- APPOINTMENT ROUTES ---
+router.post("/", authMiddleware, bookAppointment);
+router.get("/", authMiddleware, getAppointments);
 router.put("/:id", authMiddleware, roleMiddleware("admin"), updateAppointment);
-
-router.put(
-  "/:id/status",
-  authMiddleware,
-  roleMiddleware("admin"),
-  updateAppointmentStatus
-);
-
+router.put("/:id/status", authMiddleware, roleMiddleware("admin"), updateAppointmentStatus);
 router.delete("/:id", authMiddleware, roleMiddleware("admin"), deleteAppointment);
 
 module.exports = router;
