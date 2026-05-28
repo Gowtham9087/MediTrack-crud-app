@@ -11,13 +11,38 @@ function Login() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [serverWaking, setServerWaking] = useState(false);
+  const [countdown, setCountdown] = useState(30);
 
-  // Wake up backend silently when page loads — does NOT block login
+  // Wake up backend when page loads
   useEffect(() => {
     setServerWaking(true);
+    setCountdown(30);
+
+    // Start countdown
+    const timer = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    // Ping server
     fetch("https://meditrack-crud-app1.onrender.com")
-      .then(() => setServerWaking(false))
-      .catch(() => setServerWaking(false));
+      .then(() => {
+        setServerWaking(false);
+        clearInterval(timer);
+        setCountdown(0);
+      })
+      .catch(() => {
+        setServerWaking(false);
+        clearInterval(timer);
+        setCountdown(0);
+      });
+
+    return () => clearInterval(timer);
   }, []);
 
   const handleChange = (e) => {
@@ -102,7 +127,6 @@ function Login() {
           <div className="absolute w-96 h-96 bg-cyan-500/10 rounded-full -bottom-32 -left-32" />
 
           <div className="relative z-10">
-            {/* Logo */}
             <div className="flex items-center gap-4 mb-12">
               <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-400 flex items-center justify-center shadow-lg shadow-blue-500/30">
                 <Stethoscope size={28} />
@@ -115,7 +139,6 @@ function Login() {
               </div>
             </div>
 
-            {/* Headline */}
             <h2 className="text-5xl font-black leading-tight text-white">
               Secure <br /> Healthcare <br /> Portal
             </h2>
@@ -146,10 +169,24 @@ function Login() {
               <h1 className="text-3xl font-black">Login to Account</h1>
             </div>
 
-            {/* Server waking up notice — info only, does NOT block login */}
+            {/* Server waking up banner with countdown */}
             {serverWaking && (
-              <div className="mb-4 bg-blue-500/10 border border-blue-500/20 text-blue-400 px-4 py-3 rounded-2xl text-sm text-center font-semibold">
-                ⏳ Connecting to server, please wait...
+              <div className="mb-4 bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 px-4 py-3 rounded-2xl text-sm text-center font-semibold">
+                ⏳ Server is starting up, please wait...{" "}
+                <span className="text-white font-black text-base">{countdown}s</span>
+                <div className="mt-2 w-full bg-yellow-500/10 rounded-full h-1.5">
+                  <div
+                    className="bg-yellow-400 h-1.5 rounded-full transition-all duration-1000"
+                    style={{ width: `${((30 - countdown) / 30) * 100}%` }}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Server ready banner */}
+            {!serverWaking && countdown === 0 && (
+              <div className="mb-4 bg-green-500/10 border border-green-500/20 text-green-400 px-4 py-3 rounded-2xl text-sm text-center font-semibold">
+                ✅ Server is ready! You can login now.
               </div>
             )}
 
@@ -219,13 +256,13 @@ function Login() {
               </div>
             )}
 
-            {/* Submit — only disabled when actively logging in */}
+            {/* Submit */}
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || serverWaking}
               className="w-full mt-6 py-4 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-base transition-all shadow-lg shadow-blue-500/20 active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              {loading ? "Logging in..." : "Login"}
+              {loading ? "Logging in..." : serverWaking ? `Please wait ${countdown}s...` : "Login"}
             </button>
 
             <p className="text-center text-slate-600 text-xs mt-6">
