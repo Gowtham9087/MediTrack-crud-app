@@ -7,10 +7,10 @@ function AddInvoiceForm({ invoice, setInvoice, addInvoice, patients, doctors }) 
   const total = Number(invoice.consultationFee || 0) + Number(invoice.medicineFee || 0) + Number(invoice.labFee || 0) + Number(invoice.otherFee || 0);
 
   const handleChange = (e) => {
-    setInvoice({ ...invoice, [e.target.name]: e.target.value, consultationFee: CONSULTATION_FEE });
+    // ⚡️ Removed the forced consultation fee override here
+    setInvoice({ ...invoice, [e.target.name]: e.target.value });
   };
 
-  // ⚡️ 1. Get today's date string to prevent selecting past dates
   const getTodayDateString = () => {
     const today = new Date();
     const offset = today.getTimezoneOffset() * 60000;
@@ -42,12 +42,13 @@ function AddInvoiceForm({ invoice, setInvoice, addInvoice, patients, doctors }) 
           {doctors.map((d) => (<option key={d.id} value={d.name}>Dr. {d.name}</option>))}
         </select>
 
-        <input name="consultationFee" id="consultationFee" type="text" value={`Consultation: ₹${CONSULTATION_FEE}`} readOnly className={`${inputClass} cursor-not-allowed opacity-70 font-semibold`} />
-        <input name="medicineFee" id="medicineFee" type="number" inputMode="numeric" value={invoice.medicineFee} onChange={handleChange} placeholder="Medicine Fee" className={numberInputClass} />
-        <input name="labFee" id="labFee" type="number" inputMode="numeric" value={invoice.labFee} onChange={handleChange} placeholder="Lab Fee" className={numberInputClass} />
-        <input name="otherFee" id="otherFee" type="number" inputMode="numeric" value={invoice.otherFee} onChange={handleChange} placeholder="Other Fee" className={numberInputClass} />
+        {/* ⚡️ Updated to a fully typable number input */}
+        <input name="consultationFee" id="consultationFee" type="number" inputMode="numeric" value={invoice.consultationFee || ""} onChange={handleChange} placeholder="Consultation Fee" className={numberInputClass} />
         
-        {/* ⚡️ 2. Apply the min attribute here */}
+        <input name="medicineFee" id="medicineFee" type="number" inputMode="numeric" value={invoice.medicineFee || ""} onChange={handleChange} placeholder="Medicine Fee" className={numberInputClass} />
+        <input name="labFee" id="labFee" type="number" inputMode="numeric" value={invoice.labFee || ""} onChange={handleChange} placeholder="Lab Fee" className={numberInputClass} />
+        <input name="otherFee" id="otherFee" type="number" inputMode="numeric" value={invoice.otherFee || ""} onChange={handleChange} placeholder="Other Fee" className={numberInputClass} />
+        
         <input 
           name="invoiceDate" 
           id="invoiceDate" 
@@ -55,7 +56,7 @@ function AddInvoiceForm({ invoice, setInvoice, addInvoice, patients, doctors }) 
           value={invoice.invoiceDate} 
           onChange={handleChange} 
           required 
-          min={todayStr} // Blocks any dates before today
+          min={todayStr} 
           className={inputClass} 
         />
 
