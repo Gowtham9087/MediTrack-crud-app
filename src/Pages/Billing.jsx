@@ -13,6 +13,7 @@ function Billing() {
   const [doctors, setDoctors] = useState([]);
   const [search, setSearch] = useState("");
   const [toast, setToast] = useState("");
+  const [payingId, setPayingId] = useState(null); // tracks which invoice is being paid
 
   const toastTimer = useRef(null);
 
@@ -64,10 +65,94 @@ function Billing() {
     return () => { if (toastTimer.current) clearTimeout(toastTimer.current); };
   }, []);
 
+  // ✅ RAZORPAY PAYMENT HANDLER
+  const handlePayment = async (inv) => {
+    try {
+      setPayingId(inv.id);
+
+      // 1. Create order on backend
+      const res = await fetch(`${API_URL}/payment/create-order`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ amount: inv.totalAmount }),
+      });
+
+      const order = await res.json();
+      if (!res.ok) {
+        showToast(order.message || "Failed to create payment order ❌");
+        setPayingId(null);
+        return;
+      }
+
+      // 2. Open Razorpay modal
+      const options = {
+        key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+        amount: order.amount,
+        currency: "INR",
+        name: "MediTrack",
+        description: `Invoice #${inv.invoiceNumber} - ${inv.patientName}`,
+        order_id: order.id,
+        handler: async (response) => {
+          try {
+            // 3. Verify payment on backend
+            const verifyRes = await fetch(`${API_URL}/payment/verify`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify({
+                ...response,
+                invoiceId: inv.id, // so backend can mark invoice as Paid
+              }),
+            });
+
+            const verifyData = await verifyRes.json();
+            if (verifyData.success) {
+              showToast("Payment successful ✔️");
+              fetchBillingData(); // refresh to show updated status
+            } else {
+              showToast("Payment verification failed ❌");
+            }
+          } catch (err) {
+            console.error(err);
+            showToast("Payment verification error ❌");
+          }
+        },
+        prefill: {
+          name: inv.patientName || "",
+          email: "",
+          contact: "",
+        },
+        theme: { color: "#2563eb" },
+        modal: {
+          ondismiss: () => {
+            showToast("Payment cancelled");
+            setPayingId(null);
+          },
+        },
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.on("payment.failed", (response) => {
+        showToast(`Payment failed: ${response.error.description} ❌`);
+        setPayingId(null);
+      });
+      rzp.open();
+    } catch (error) {
+      console.error(error);
+      showToast("Payment initiation failed ❌");
+    } finally {
+      setPayingId(null);
+    }
+  };
+
   const addInvoice = async (e) => {
     e.preventDefault();
     
-    // Calculate total and force numbers to prevent MongoDB 500 crashes
     const calculatedTotal = 
       500 + 
       (Number(invoice.medicineFee) || 0) + 
@@ -114,7 +199,6 @@ function Billing() {
   };
 
   const updateInvoice = async () => {
-    // Calculate total and force numbers for the update payload too
     const calculatedTotal = 
       500 + 
       (Number(editInvoice.medicineFee) || 0) + 
@@ -226,7 +310,14 @@ function Billing() {
 
         <div className="rounded-3xl border border-slate-200 dark:border-[#1e293b] bg-white dark:bg-[#0f172a] shadow-sm overflow-hidden w-full h-auto mx-auto">
           {filteredInvoices.length > 0 ? (
-            <BillingTable invoices={filteredInvoices} startEdit={startEdit} setDeleteId={setDeleteId} />
+            // ✅ Pass handlePayment and payingId as props to BillingTable
+            <BillingTable
+              invoices={filteredInvoices}
+              startEdit={startEdit}
+              setDeleteId={setDeleteId}
+              handlePayment={handlePayment}
+              payingId={payingId}
+            />
           ) : (
             <div className="py-20 text-center">
               <CreditCard size={42} className="mx-auto text-slate-300 dark:text-slate-600 mb-4" />

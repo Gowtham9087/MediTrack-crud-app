@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { AgGridReact } from "ag-grid-react";
 import { AllCommunityModule, ModuleRegistry } from "ag-grid-community";
-import { Edit2, Trash2, Download } from "lucide-react";
+import { Edit2, Trash2, Download, CreditCard, Loader2 } from "lucide-react";
 import { generateInvoice } from "../../utils/generateInvoice";
 
 import "ag-grid-community/styles/ag-grid.css";
@@ -9,7 +9,7 @@ import "ag-grid-community/styles/ag-theme-quartz.css";
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
-function BillingTable({ invoices = [], startEdit, setDeleteId }) {
+function BillingTable({ invoices = [], startEdit, setDeleteId, handlePayment, payingId }) {
 
   const StatusCellRenderer = (params) => {
     const status = params.value || "Pending";
@@ -27,8 +27,27 @@ function BillingTable({ invoices = [], startEdit, setDeleteId }) {
   const ActionsCellRenderer = (params) => {
     const data = params.data;
     if (!data) return null;
+    const isPending = data.status === "Pending";
+    const isPayingThis = payingId === data.id;
+
     return (
       <div className="flex items-center gap-2 h-full">
+        {/* ✅ Pay Now button — only shows for Pending invoices */}
+        {isPending && (
+          <button
+            type="button"
+            onClick={() => handlePayment(data)}
+            disabled={isPayingThis}
+            className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500 hover:text-white transition-all cursor-pointer text-[11px] font-bold disabled:opacity-60 disabled:cursor-not-allowed"
+          >
+            {isPayingThis
+              ? <Loader2 size={12} className="animate-spin" />
+              : <CreditCard size={12} />
+            }
+            {isPayingThis ? "Processing..." : "Pay"}
+          </button>
+        )}
+
         <button type="button" onClick={() => generateInvoice(data)} className="p-1.5 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-500 hover:bg-blue-500 hover:text-white transition-all cursor-pointer">
           <Download size={14} />
         </button>
@@ -50,8 +69,9 @@ function BillingTable({ invoices = [], startEdit, setDeleteId }) {
     { headerName: "Amount", valueGetter: p => `₹${p.data.totalAmount}`, width: 120, cellClass: "flex items-center text-sm font-black text-slate-900 dark:text-white" },
     { headerName: "Status", field: "status", width: 110, cellRenderer: StatusCellRenderer },
     { headerName: "Date", field: "invoiceDate", width: 120, cellClass: "flex items-center font-mono text-sm text-slate-600 dark:text-slate-400" },
-    { headerName: "Action", width: 140, resizable: false, cellRenderer: ActionsCellRenderer }
-  ], [startEdit, setDeleteId]);
+    // ✅ Wider Action column to fit the Pay button
+    { headerName: "Action", width: 200, resizable: false, cellRenderer: ActionsCellRenderer }
+  ], [startEdit, setDeleteId, handlePayment, payingId]);
 
   const defaultColDef = useMemo(() => ({
     sortable: false, filter: false, resizable: true, suppressMovable: true,
@@ -78,8 +98,6 @@ function BillingTable({ invoices = [], startEdit, setDeleteId }) {
         .custom-billing-grid .ag-row { 
           border-bottom: 1px solid var(--ag-border-color) !important; 
         }
-        
-        /* ⚡️ FIXED: Added mobile responsive wrap and auto height to pagination */
         .custom-billing-grid .ag-paging-panel { 
           border-top: 1px solid var(--ag-border-color) !important; 
           color: var(--ag-foreground-color) !important; 
