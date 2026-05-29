@@ -19,6 +19,7 @@
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.6.2",
     "mysql2": "^3.12.0",
+    "razorpay": "^2.9.6",
     "sequelize": "^6.37.3"
   },
   "devDependencies": {

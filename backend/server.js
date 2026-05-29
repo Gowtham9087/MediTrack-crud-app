@@ -5,6 +5,7 @@ const bcrypt = require("bcrypt");
 
 const sequelize = require("./config/mysql");
 const connectMongoDB = require("./config/mongodb");
+const paymentRoutes = require('./routes/paymentRoutes');
 
 // --- MODELS ---
 const Patient = require("./models/mysql/Patient");
@@ -55,6 +56,7 @@ app.use("/api/pharmacy", pharmacyRoutes);
 app.use("/api/laboratory", labRoutes);
 app.use("/api/schedules", scheduleRoutes);
 app.use("/api/prescriptions", PrescriptionRoutes);
+app.use('/api/payment', paymentRoutes);
 
 // Direct doctors route
 app.get("/api/doctors", authMiddleware, async (req, res) => {
