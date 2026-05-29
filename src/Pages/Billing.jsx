@@ -13,7 +13,6 @@ function Billing() {
   const [doctors, setDoctors] = useState([]);
   const [search, setSearch] = useState("");
   const [toast, setToast] = useState("");
-  const [payingId, setPayingId] = useState(null); // tracks which invoice is being paid
 
   const toastTimer = useRef(null);
 
@@ -65,107 +64,22 @@ function Billing() {
     return () => { if (toastTimer.current) clearTimeout(toastTimer.current); };
   }, []);
 
-  // ✅ RAZORPAY PAYMENT HANDLER
-  const handlePayment = async (inv) => {
-    try {
-      setPayingId(inv.id);
-
-      // 1. Create order on backend
-      const res = await fetch(`${API_URL}/payment/create-order`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ amount: inv.totalAmount }),
-      });
-
-      const order = await res.json();
-      if (!res.ok) {
-        showToast(order.message || "Failed to create payment order ❌");
-        setPayingId(null);
-        return;
-      }
-
-      // 2. Open Razorpay modal
-      const options = {
-        key: import.meta.env.VITE_RAZORPAY_KEY_ID,
-        amount: order.amount,
-        currency: "INR",
-        name: "MediTrack",
-        description: `Invoice #${inv.invoiceNumber} - ${inv.patientName}`,
-        order_id: order.id,
-        handler: async (response) => {
-          try {
-            // 3. Verify payment on backend
-            const verifyRes = await fetch(`${API_URL}/payment/verify`, {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${token}`,
-              },
-              body: JSON.stringify({
-                ...response,
-                invoiceId: inv.id, // so backend can mark invoice as Paid
-              }),
-            });
-
-            const verifyData = await verifyRes.json();
-            if (verifyData.success) {
-              showToast("Payment successful ✔️");
-              fetchBillingData(); // refresh to show updated status
-            } else {
-              showToast("Payment verification failed ❌");
-            }
-          } catch (err) {
-            console.error(err);
-            showToast("Payment verification error ❌");
-          }
-        },
-        prefill: {
-          name: inv.patientName || "",
-          email: "",
-          contact: "",
-        },
-        theme: { color: "#2563eb" },
-        modal: {
-          ondismiss: () => {
-            showToast("Payment cancelled");
-            setPayingId(null);
-          },
-        },
-      };
-
-      const rzp = new window.Razorpay(options);
-      rzp.on("payment.failed", (response) => {
-        showToast(`Payment failed: ${response.error.description} ❌`);
-        setPayingId(null);
-      });
-      rzp.open();
-    } catch (error) {
-      console.error(error);
-      showToast("Payment initiation failed ❌");
-    } finally {
-      setPayingId(null);
-    }
-  };
-
   const addInvoice = async (e) => {
     e.preventDefault();
-    
-    const calculatedTotal = 
-      500 + 
-      (Number(invoice.medicineFee) || 0) + 
-      (Number(invoice.labFee) || 0) + 
+
+    const calculatedTotal =
+      500 +
+      (Number(invoice.medicineFee) || 0) +
+      (Number(invoice.labFee) || 0) +
       (Number(invoice.otherFee) || 0);
 
-    const payload = { 
-      ...invoice, 
+    const payload = {
+      ...invoice,
       consultationFee: 500,
       medicineFee: Number(invoice.medicineFee) || 0,
       labFee: Number(invoice.labFee) || 0,
       otherFee: Number(invoice.otherFee) || 0,
-      totalAmount: calculatedTotal
+      totalAmount: calculatedTotal,
     };
 
     try {
@@ -176,7 +90,7 @@ function Billing() {
       });
       const data = await res.json();
       if (!res.ok) {
-        console.error("Backend Error:", data); 
+        console.error("Backend Error:", data);
         return showToast(data.message || "Invoice creation failed ❌");
       }
 
@@ -199,19 +113,19 @@ function Billing() {
   };
 
   const updateInvoice = async () => {
-    const calculatedTotal = 
-      500 + 
-      (Number(editInvoice.medicineFee) || 0) + 
-      (Number(editInvoice.labFee) || 0) + 
+    const calculatedTotal =
+      500 +
+      (Number(editInvoice.medicineFee) || 0) +
+      (Number(editInvoice.labFee) || 0) +
       (Number(editInvoice.otherFee) || 0);
 
-    const payload = { 
-      ...editInvoice, 
+    const payload = {
+      ...editInvoice,
       consultationFee: 500,
       medicineFee: Number(editInvoice.medicineFee) || 0,
       labFee: Number(editInvoice.labFee) || 0,
       otherFee: Number(editInvoice.otherFee) || 0,
-      totalAmount: calculatedTotal
+      totalAmount: calculatedTotal,
     };
 
     try {
@@ -251,11 +165,17 @@ function Billing() {
   };
 
   const filteredInvoices = invoices.filter((invoice) =>
-    `${invoice.invoiceNumber} ${invoice.patientName} ${invoice.doctorName} ${invoice.status}`.toLowerCase().includes(search.toLowerCase())
+    `${invoice.invoiceNumber} ${invoice.patientName} ${invoice.doctorName} ${invoice.status}`
+      .toLowerCase()
+      .includes(search.toLowerCase())
   );
 
-  const totalRevenue = invoices.filter((item) => item.status === "Paid").reduce((sum, item) => sum + Number(item.totalAmount || 0), 0);
-  const pendingPayments = invoices.filter((item) => item.status === "Pending").reduce((sum, item) => sum + Number(item.totalAmount || 0), 0);
+  const totalRevenue = invoices
+    .filter((item) => item.status === "Paid")
+    .reduce((sum, item) => sum + Number(item.totalAmount || 0), 0);
+  const pendingPayments = invoices
+    .filter((item) => item.status === "Pending")
+    .reduce((sum, item) => sum + Number(item.totalAmount || 0), 0);
   const paidInvoices = invoices.filter((item) => item.status === "Paid").length;
 
   return (
@@ -267,21 +187,29 @@ function Billing() {
       )}
 
       <div className="max-w-[1650px] mx-auto">
+        {/* Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-6">
           <div>
             <p className="text-blue-500 font-bold mb-1 text-sm">Billing Management</p>
             <h1 className="text-3xl sm:text-4xl font-black tracking-tight">Billing & Payments</h1>
-            <p className="text-slate-500 dark:text-slate-400 mt-1.5 text-sm max-w-sm">Manage invoices, payments and hospital billing records.</p>
+            <p className="text-slate-500 dark:text-slate-400 mt-1.5 text-sm max-w-sm">
+              Manage invoices, payments and hospital billing records.
+            </p>
           </div>
 
           <div className="flex flex-col sm:flex-row items-center gap-4 w-full md:w-auto">
             <div className="w-full sm:w-[320px] h-12 rounded-2xl bg-white dark:bg-[#0f172a] border border-slate-200 dark:border-[#1e293b] flex items-center px-4 gap-3 shadow-sm">
               <Search size={18} className="text-slate-400 shrink-0" />
-              <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search invoices..." className="flex-1 bg-transparent outline-none text-slate-900 dark:text-white text-sm" />
+              <input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search invoices..."
+                className="flex-1 bg-transparent outline-none text-slate-900 dark:text-white text-sm"
+              />
             </div>
-            
-            <button 
-              onClick={() => setIsAddOpen(true)} 
+
+            <button
+              onClick={() => setIsAddOpen(true)}
               className="w-full sm:w-auto h-12 px-6 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-bold flex items-center justify-center gap-2 shadow-lg shadow-blue-500/10 transition-all text-sm shrink-0"
             >
               <Plus size={18} /> New Invoice
@@ -289,6 +217,7 @@ function Billing() {
           </div>
         </div>
 
+        {/* Stats Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-6">
           <div className="rounded-3xl bg-white dark:bg-[#0f172a] border border-slate-200 dark:border-[#1e293b] p-6 shadow-sm">
             <p className="text-slate-500 dark:text-slate-400 text-sm font-bold uppercase tracking-wider">Total Revenue</p>
@@ -308,15 +237,13 @@ function Billing() {
           </div>
         </div>
 
+        {/* Billing Table */}
         <div className="rounded-3xl border border-slate-200 dark:border-[#1e293b] bg-white dark:bg-[#0f172a] shadow-sm overflow-hidden w-full h-auto mx-auto">
           {filteredInvoices.length > 0 ? (
-            // ✅ Pass handlePayment and payingId as props to BillingTable
             <BillingTable
               invoices={filteredInvoices}
               startEdit={startEdit}
               setDeleteId={setDeleteId}
-              handlePayment={handlePayment}
-              payingId={payingId}
             />
           ) : (
             <div className="py-20 text-center">
@@ -328,11 +255,17 @@ function Billing() {
         </div>
       </div>
 
+      {/* Add Invoice Modal */}
       {isAddOpen && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex justify-center items-center z-[9998] px-4">
           <div className="fixed inset-0" onClick={() => setIsAddOpen(false)} />
           <div className="relative bg-white dark:bg-[#111827] w-full max-w-3xl rounded-[2.5rem] p-8 sm:p-10 shadow-2xl z-10 border border-slate-200 dark:border-slate-800">
-            <button onClick={() => setIsAddOpen(false)} className="absolute top-6 right-6 w-11 h-11 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center cursor-pointer text-slate-500 hover:text-slate-900 dark:hover:text-white"><X size={20} /></button>
+            <button
+              onClick={() => setIsAddOpen(false)}
+              className="absolute top-6 right-6 w-11 h-11 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center cursor-pointer text-slate-500 hover:text-slate-900 dark:hover:text-white"
+            >
+              <X size={20} />
+            </button>
             <AddInvoiceForm invoice={invoice} setInvoice={setInvoice} addInvoice={addInvoice} patients={patients} doctors={doctors} />
           </div>
         </div>
