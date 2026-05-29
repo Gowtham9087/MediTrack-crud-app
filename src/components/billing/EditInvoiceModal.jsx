@@ -8,11 +8,9 @@ function EditInvoiceModal({ editId, setEditId, editInvoice, setEditInvoice, upda
   const total = Number(editInvoice.consultationFee || 0) + Number(editInvoice.medicineFee || 0) + Number(editInvoice.labFee || 0) + Number(editInvoice.otherFee || 0);
 
   const handleChange = (e) => {
-    // ⚡️ FIXED: Just basic state updating now. No forced constants.
     setEditInvoice({ ...editInvoice, [e.target.name]: e.target.value });
   };
 
-  // ⚡️ 1. Get today's date string to prevent moving an invoice to a past date
   const getTodayDateString = () => {
     const today = new Date();
     const offset = today.getTimezoneOffset() * 60000;
@@ -25,7 +23,7 @@ function EditInvoiceModal({ editId, setEditId, editInvoice, setEditInvoice, upda
     <div className="fixed inset-0 z-[9998] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
       <div className="fixed inset-0" onClick={() => setEditId(null)}></div>
       <div className="relative bg-white dark:bg-[#111827] text-slate-900 dark:text-white p-6 sm:p-8 rounded-[2.5rem] w-full max-w-2xl shadow-2xl transition-all border border-slate-200 dark:border-slate-800">
-        
+
         <div className="flex justify-between items-center mb-8">
           <div>
             <h2 className="text-2xl font-black">Edit Invoice</h2>
@@ -39,20 +37,19 @@ function EditInvoiceModal({ editId, setEditId, editInvoice, setEditInvoice, upda
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           <input name="patientName" value={editInvoice.patientName} onChange={handleChange} placeholder="Patient Name" className={inputClass} />
           <input name="doctorName" value={editInvoice.doctorName} onChange={handleChange} placeholder="Doctor Name" className={inputClass} />
-          
-          {/* ⚡️ FIXED: All inputs are now fully typable */}
+
           <input name="consultationFee" type="number" inputMode="numeric" value={editInvoice.consultationFee || ""} onChange={handleChange} placeholder="Consultation Fee" className={numberInputClass} />
           <input name="medicineFee" type="number" inputMode="numeric" value={editInvoice.medicineFee || ""} onChange={handleChange} placeholder="Medicine Fee" className={numberInputClass} />
           <input name="labFee" type="number" inputMode="numeric" value={editInvoice.labFee || ""} onChange={handleChange} placeholder="Lab Fee" className={numberInputClass} />
           <input name="otherFee" type="number" inputMode="numeric" value={editInvoice.otherFee || ""} onChange={handleChange} placeholder="Other Fee" className={numberInputClass} />
-          
-          <input 
-            name="invoiceDate" 
-            type="date" 
-            value={editInvoice.invoiceDate} 
-            onChange={handleChange} 
-            min={todayStr} 
-            className={inputClass} 
+
+          <input
+            name="invoiceDate"
+            type="date"
+            value={editInvoice.invoiceDate}
+            onChange={handleChange}
+            min={todayStr}
+            className={inputClass}
           />
 
           <select name="status" value={editInvoice.status} onChange={handleChange} className={`${inputClass} appearance-none font-bold`}>
