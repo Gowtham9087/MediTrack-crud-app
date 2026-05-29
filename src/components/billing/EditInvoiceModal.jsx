@@ -8,6 +8,7 @@ function EditInvoiceModal({ editId, setEditId, editInvoice, setEditInvoice, upda
   const total = Number(editInvoice.consultationFee || 0) + Number(editInvoice.medicineFee || 0) + Number(editInvoice.labFee || 0) + Number(editInvoice.otherFee || 0);
 
   const handleChange = (e) => {
+    // ⚡️ FIXED: Just basic state updating now. No forced constants.
     setEditInvoice({ ...editInvoice, [e.target.name]: e.target.value });
   };
 
@@ -38,12 +39,13 @@ function EditInvoiceModal({ editId, setEditId, editInvoice, setEditInvoice, upda
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           <input name="patientName" value={editInvoice.patientName} onChange={handleChange} placeholder="Patient Name" className={inputClass} />
           <input name="doctorName" value={editInvoice.doctorName} onChange={handleChange} placeholder="Doctor Name" className={inputClass} />
-          <input name="consultationFee" type="number" value={editInvoice.consultationFee} onChange={handleChange} placeholder="Consultation Fee" className={numberInputClass} />
-          <input name="medicineFee" type="number" value={editInvoice.medicineFee} onChange={handleChange} placeholder="Medicine Fee" className={numberInputClass} />
-          <input name="labFee" type="number" value={editInvoice.labFee} onChange={handleChange} placeholder="Lab Fee" className={numberInputClass} />
-          <input name="otherFee" type="number" value={editInvoice.otherFee} onChange={handleChange} placeholder="Other Fee" className={numberInputClass} />
           
-          {/* ⚡️ 2. Apply the min attribute here */}
+          {/* ⚡️ FIXED: All inputs are now fully typable */}
+          <input name="consultationFee" type="number" inputMode="numeric" value={editInvoice.consultationFee || ""} onChange={handleChange} placeholder="Consultation Fee" className={numberInputClass} />
+          <input name="medicineFee" type="number" inputMode="numeric" value={editInvoice.medicineFee || ""} onChange={handleChange} placeholder="Medicine Fee" className={numberInputClass} />
+          <input name="labFee" type="number" inputMode="numeric" value={editInvoice.labFee || ""} onChange={handleChange} placeholder="Lab Fee" className={numberInputClass} />
+          <input name="otherFee" type="number" inputMode="numeric" value={editInvoice.otherFee || ""} onChange={handleChange} placeholder="Other Fee" className={numberInputClass} />
+          
           <input 
             name="invoiceDate" 
             type="date" 
