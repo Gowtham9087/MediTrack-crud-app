@@ -1,11 +1,10 @@
 import { CreditCard, Save } from "lucide-react";
 
 function AddInvoiceForm({ invoice, setInvoice, addInvoice, patients, doctors }) {
-  const CONSULTATION_FEE = 500;
   const inputClass = "w-full bg-[#f8fafc] dark:bg-[#0f172a] border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 px-5 h-[56px] rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm";
   const numberInputClass = `${inputClass} no-spinner`;
 
-  const total = CONSULTATION_FEE + Number(invoice.medicineFee || 0) + Number(invoice.labFee || 0) + Number(invoice.otherFee || 0);
+  const total = Number(invoice.consultationFee || 0) + Number(invoice.medicineFee || 0) + Number(invoice.labFee || 0) + Number(invoice.otherFee || 0);
 
   const handleChange = (e) => {
     setInvoice({ ...invoice, [e.target.name]: e.target.value, consultationFee: CONSULTATION_FEE });
