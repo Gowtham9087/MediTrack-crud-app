@@ -99,6 +99,8 @@ exports.updateInvoice = async (req, res) => {
       invoiceDate,
     });
 
+    await invoice.reload(); // ← fetches fresh data from DB after update
+
     res.json(invoice);
   } catch (error) {
     console.log(error);
