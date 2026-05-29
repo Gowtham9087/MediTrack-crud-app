@@ -1,6 +1,8 @@
+const dotenv = require("dotenv");
+dotenv.config(); // ✅ MUST be first before any other require that needs env vars
+
 const express = require("express");
 const cors = require("cors");
-const dotenv = require("dotenv");
 const bcrypt = require("bcrypt");
 
 const sequelize = require("./config/mysql");
@@ -29,8 +31,6 @@ const scheduleRoutes = require("./routes/scheduleRoutes");
 const PrescriptionRoutes = require("./routes/prescriptionroutes");
 const authMiddleware = require("./middleware/authMiddleware");
 
-dotenv.config();
-
 const app = express();
 
 // ✅ CORS
@@ -56,7 +56,7 @@ app.use("/api/pharmacy", pharmacyRoutes);
 app.use("/api/laboratory", labRoutes);
 app.use("/api/schedules", scheduleRoutes);
 app.use("/api/prescriptions", PrescriptionRoutes);
-app.use('/api/payment', paymentRoutes);
+app.use("/api/payment", paymentRoutes);
 
 // Direct doctors route
 app.get("/api/doctors", authMiddleware, async (req, res) => {
@@ -76,7 +76,7 @@ app.get("/api/medicines", async (req, res) => {
       { id: 2, name: "Amoxicillin 500mg", stock: 85 },
       { id: 3, name: "Cough Syrup 100ml", stock: 40 },
       { id: 4, name: "Vitamin C Tablets", stock: 200 },
-      { id: 5, name: "Ibuprofen 400mg", stock: 110 }
+      { id: 5, name: "Ibuprofen 400mg", stock: 110 },
     ];
     res.status(200).json(mockInventory);
   } catch (error) {
