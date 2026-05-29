@@ -5,7 +5,7 @@ const bcrypt = require("bcrypt");
 
 const sequelize = require("./config/mysql");
 const connectMongoDB = require("./config/mongodb");
-const paymentRoutes = require('./routes/paymentRoutes');
+const paymentRoutes = require("./routes/paymentRoutes");
 
 // --- MODELS ---
 const Patient = require("./models/mysql/Patient");
