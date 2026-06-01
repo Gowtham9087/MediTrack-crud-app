@@ -1,11 +1,10 @@
 const nodemailer = require("nodemailer");
-const twilio = require("twilio");
+const bcrypt = require("bcryptjs");
 const User = require("../models/mysql/User");
 const Patient = require("../models/mysql/Patient");
 const Doctor = require("../models/mysql/Doctor");
-const bcrypt = require("bcryptjs");
 
-// In-memory OTP store { email: { otp, expiresAt } }
+// In-memory OTP store { email: { otp, expiresAt, verified } }
 const otpStore = {};
 
 // ─── Nodemailer Setup ─────────────────────────────────────────────────────────
@@ -17,112 +16,76 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-// ─── Twilio Setup ─────────────────────────────────────────────────────────────
-const twilioClient = twilio(
-  process.env.TWILIO_ACCOUNT_SID,
-  process.env.TWILIO_AUTH_TOKEN
-);
-
-// ─── Generate 6-digit OTP ─────────────────────────────────────────────────────
 const generateOTP = () => Math.floor(100000 + Math.random() * 900000).toString();
 
-// ─── POST /api/auth/send-otp ──────────────────────────────────────────────────
+// ─── POST /api/send-otp ───────────────────────────────────────────────────────
 exports.sendOTP = async (req, res) => {
   try {
     const { email } = req.body;
     if (!email) return res.status(400).json({ message: "Email is required" });
 
-    // Find user in all three tables
-    let userRecord = await User.findOne({ where: { email } });
-    let phone = null;
+    // Check all tables
+    const user = await User.findOne({ where: { email } });
+    const doctor = await Doctor.findOne({ where: { email } });
+    const patient = await Patient.findOne({ where: { email } });
 
-    if (!userRecord) {
-      const doctor = await Doctor.findOne({ where: { email } });
-      if (doctor) {
-        userRecord = doctor;
-        phone = doctor.contact || doctor.phone || null;
-      }
-    } else {
-      phone = userRecord.phone || null;
-    }
-
-    if (!userRecord) {
-      const patient = await Patient.findOne({ where: { email } });
-      if (patient) {
-        userRecord = patient;
-        phone = patient.contact || null;
-      }
-    }
-
-    if (!userRecord) {
+    if (!user && !doctor && !patient) {
       return res.status(404).json({ message: "No account found with this email" });
     }
 
     const otp = generateOTP();
-    const expiresAt = Date.now() + 5 * 60 * 1000; // 5 minutes
-    otpStore[email] = { otp, expiresAt };
+    otpStore[email] = { otp, expiresAt: Date.now() + 5 * 60 * 1000, verified: false };
 
-    console.log(`OTP for ${email}: ${otp}`); // debug log
+    console.log(`OTP for ${email}: ${otp}`);
 
-    // ─── Send Email ───────────────────────────────────────────────────────────
     await transporter.sendMail({
       from: `"MediTrack" <${process.env.EMAIL_USER}>`,
       to: email,
-      subject: "MediTrack - Your OTP Code",
+      subject: "MediTrack - Your OTP Verification Code",
       html: `
-        <div style="font-family:sans-serif;max-width:480px;margin:auto;padding:32px;border:1px solid #e2e8f0;border-radius:16px;">
-          <h2 style="color:#2563eb;margin:0 0 8px;">MediTrack</h2>
-          <p style="color:#64748b;margin:0 0 24px;">Hospital Management System</p>
-          <p style="font-size:15px;color:#0f172a;">Your OTP verification code is:</p>
-          <div style="font-size:40px;font-weight:900;letter-spacing:12px;color:#2563eb;text-align:center;padding:24px 0;">
-            ${otp}
+        <div style="font-family:sans-serif;max-width:480px;margin:auto;padding:32px;border:1px solid #e2e8f0;border-radius:16px;background:#ffffff;">
+          <div style="text-align:center;margin-bottom:24px;">
+            <h2 style="color:#2563eb;margin:0;font-size:28px;font-weight:900;">MediTrack</h2>
+            <p style="color:#64748b;margin:4px 0 0;font-size:13px;">Hospital Management System</p>
           </div>
-          <p style="color:#64748b;font-size:13px;text-align:center;">This code expires in <strong>5 minutes</strong>.</p>
-          <p style="color:#94a3b8;font-size:12px;text-align:center;margin-top:24px;">If you did not request this, please ignore this email.</p>
+          <div style="background:#f8fafc;border-radius:12px;padding:24px;text-align:center;margin-bottom:24px;">
+            <p style="color:#0f172a;font-size:15px;margin:0 0 16px;font-weight:600;">Your OTP Verification Code</p>
+            <div style="font-size:42px;font-weight:900;letter-spacing:14px;color:#2563eb;padding:8px 0;">
+              ${otp}
+            </div>
+            <p style="color:#64748b;font-size:13px;margin:16px 0 0;">This code expires in <strong>5 minutes</strong></p>
+          </div>
+          <p style="color:#94a3b8;font-size:12px;text-align:center;margin:0;">
+            If you did not request this, please ignore this email.<br/>
+            Do not share this code with anyone.
+          </p>
         </div>
       `,
     });
 
-    // ─── Send SMS if phone exists ─────────────────────────────────────────────
-    if (phone) {
-      const formattedPhone = phone.startsWith("+") ? phone : `+91${phone}`;
-      try {
-        await twilioClient.messages.create({
-          body: `Your MediTrack OTP is: ${otp}. Valid for 5 minutes.`,
-          from: process.env.TWILIO_PHONE,
-          to: formattedPhone,
-        });
-      } catch (smsErr) {
-        console.error("SMS send failed:", smsErr.message);
-        // Don't fail the whole request if SMS fails
-      }
-    }
-
-    res.json({ success: true, message: "OTP sent to your email" + (phone ? " and phone" : "") });
+    res.json({ success: true, message: "OTP sent to your email successfully" });
   } catch (error) {
     console.error("Send OTP error:", error.message);
-    res.status(500).json({ message: "Failed to send OTP" });
+    res.status(500).json({ message: "Failed to send OTP. Please try again." });
   }
 };
 
-// ─── POST /api/auth/verify-otp ────────────────────────────────────────────────
+// ─── POST /api/verify-otp ─────────────────────────────────────────────────────
 exports.verifyOTP = async (req, res) => {
   try {
     const { email, otp } = req.body;
 
     const record = otpStore[email];
-    if (!record) return res.status(400).json({ message: "OTP not found. Please request again." });
+    if (!record) return res.status(400).json({ message: "OTP not found. Please request a new one." });
     if (Date.now() > record.expiresAt) {
       delete otpStore[email];
-      return res.status(400).json({ message: "OTP expired. Please request again." });
+      return res.status(400).json({ message: "OTP expired. Please request a new one." });
     }
     if (record.otp !== otp) {
-      return res.status(400).json({ message: "Invalid OTP" });
+      return res.status(400).json({ message: "Invalid OTP. Please try again." });
     }
 
-    // OTP is valid — mark as verified
     otpStore[email].verified = true;
-
     res.json({ success: true, message: "OTP verified successfully" });
   } catch (error) {
     console.error("Verify OTP error:", error.message);
@@ -130,7 +93,7 @@ exports.verifyOTP = async (req, res) => {
   }
 };
 
-// ─── POST /api/auth/reset-password ───────────────────────────────────────────
+// ─── POST /api/reset-password ─────────────────────────────────────────────────
 exports.resetPassword = async (req, res) => {
   try {
     const { email, newPassword } = req.body;
@@ -140,14 +103,12 @@ exports.resetPassword = async (req, res) => {
       return res.status(403).json({ message: "Please verify OTP first" });
     }
 
-    // Hash new password
-    const hashed = await bcrypt.hash(newPassword, 10);
-
-    // Update in correct table
     let updated = false;
 
+    // Admin or Doctor → hash password
     const user = await User.findOne({ where: { email } });
     if (user) {
+      const hashed = await bcrypt.hash(newPassword, 10);
       await User.update({ password: hashed }, { where: { email } });
       updated = true;
     }
@@ -155,13 +116,14 @@ exports.resetPassword = async (req, res) => {
     if (!updated) {
       const doctor = await Doctor.findOne({ where: { email } });
       if (doctor) {
+        const hashed = await bcrypt.hash(newPassword, 10);
         await Doctor.update({ password: hashed }, { where: { email } });
         updated = true;
       }
     }
 
+    // Patient → password is their contact number
     if (!updated) {
-      // For patients, password is their contact number — update contact
       const patient = await Patient.findOne({ where: { email } });
       if (patient) {
         await Patient.update({ contact: newPassword }, { where: { email } });
@@ -171,7 +133,7 @@ exports.resetPassword = async (req, res) => {
 
     if (!updated) return res.status(404).json({ message: "User not found" });
 
-    delete otpStore[email]; // clear OTP after reset
+    delete otpStore[email];
     res.json({ success: true, message: "Password reset successfully" });
   } catch (error) {
     console.error("Reset password error:", error.message);

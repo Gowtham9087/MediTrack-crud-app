@@ -21,11 +21,11 @@ function Billing() {
   const [isAddOpen, setIsAddOpen] = useState(false);
 
   const [invoice, setInvoice] = useState({
-    patientName: "", doctorName: "", consultationFee: 500, medicineFee: "", labFee: "", otherFee: "", status: "Pending", invoiceDate: "",
+    patientName: "", doctorName: "", consultationFee: "", medicineFee: "", labFee: "", otherFee: "", status: "Pending", invoiceDate: "",
   });
 
   const [editInvoice, setEditInvoice] = useState({
-    patientName: "", doctorName: "", consultationFee: 500, medicineFee: "", labFee: "", otherFee: "", status: "Pending", invoiceDate: "",
+    patientName: "", doctorName: "", consultationFee: "", medicineFee: "", labFee: "", otherFee: "", status: "Pending", invoiceDate: "",
   });
 
   const token = localStorage.getItem("token");
@@ -68,14 +68,14 @@ function Billing() {
     e.preventDefault();
 
     const calculatedTotal =
-      500 +
+      (Number(invoice.consultationFee) || 0) +
       (Number(invoice.medicineFee) || 0) +
       (Number(invoice.labFee) || 0) +
       (Number(invoice.otherFee) || 0);
 
     const payload = {
       ...invoice,
-      consultationFee: 500,
+      consultationFee: Number(invoice.consultationFee) || 0,
       medicineFee: Number(invoice.medicineFee) || 0,
       labFee: Number(invoice.labFee) || 0,
       otherFee: Number(invoice.otherFee) || 0,
@@ -95,7 +95,7 @@ function Billing() {
       }
 
       showToast("Invoice added successfully ✔️");
-      setInvoice({ patientName: "", doctorName: "", consultationFee: 500, medicineFee: "", labFee: "", otherFee: "", status: "Pending", invoiceDate: "" });
+      setInvoice({ patientName: "", doctorName: "", consultationFee: "", medicineFee: "", labFee: "", otherFee: "", status: "Pending", invoiceDate: "" });
       setIsAddOpen(false);
       fetchBillingData();
     } catch (error) {
@@ -107,21 +107,27 @@ function Billing() {
   const startEdit = (invoice) => {
     setEditId(invoice.id);
     setEditInvoice({
-      patientName: invoice.patientName || "", doctorName: invoice.doctorName || "", consultationFee: invoice.consultationFee || 500,
-      medicineFee: invoice.medicineFee || "", labFee: invoice.labFee || "", otherFee: invoice.otherFee || "", status: invoice.status || "Pending", invoiceDate: invoice.invoiceDate || "",
+      patientName: invoice.patientName || "",
+      doctorName: invoice.doctorName || "",
+      consultationFee: invoice.consultationFee || "",
+      medicineFee: invoice.medicineFee || "",
+      labFee: invoice.labFee || "",
+      otherFee: invoice.otherFee || "",
+      status: invoice.status || "Pending",
+      invoiceDate: invoice.invoiceDate || "",
     });
   };
 
   const updateInvoice = async () => {
     const calculatedTotal =
-      500 +
+      (Number(editInvoice.consultationFee) || 0) +
       (Number(editInvoice.medicineFee) || 0) +
       (Number(editInvoice.labFee) || 0) +
       (Number(editInvoice.otherFee) || 0);
 
     const payload = {
       ...editInvoice,
-      consultationFee: 500,
+      consultationFee: Number(editInvoice.consultationFee) || 0,
       medicineFee: Number(editInvoice.medicineFee) || 0,
       labFee: Number(editInvoice.labFee) || 0,
       otherFee: Number(editInvoice.otherFee) || 0,
