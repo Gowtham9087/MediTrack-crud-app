@@ -79,7 +79,7 @@ function Sidebar({ role, logout, setMobileMenu }) {
             <div className="flex gap-3">
               <button
                 onClick={() => setShowLogoutModal(false)}
-                className="flex-1 py-3 rounded-xl border border-slate-700 text-slate-300 font-bold hover:bg-slate-800 transition-all"
+                className="flex-1 py-3 rounded-xl border border-slate-700 text-white font-bold hover:bg-slate-500 transition-all"
               >
                 Cancel
               </button>
