@@ -1,5 +1,5 @@
 const dotenv = require("dotenv");
-dotenv.config(); // ✅ MUST be first before any other require that needs env vars
+dotenv.config();
 
 const express = require("express");
 const cors = require("cors");
@@ -33,7 +33,6 @@ const authMiddleware = require("./middleware/authMiddleware");
 
 const app = express();
 
-// ✅ CORS
 app.use(cors({
   origin: "*",
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
@@ -58,7 +57,6 @@ app.use("/api/schedules", scheduleRoutes);
 app.use("/api/prescriptions", PrescriptionRoutes);
 app.use("/api/payment", paymentRoutes);
 
-// Direct doctors route
 app.get("/api/doctors", authMiddleware, async (req, res) => {
   try {
     const doctors = await Doctor.findAll();
@@ -68,7 +66,6 @@ app.get("/api/doctors", authMiddleware, async (req, res) => {
   }
 });
 
-// Medicines route
 app.get("/api/medicines", async (req, res) => {
   try {
     const mockInventory = [
@@ -80,7 +77,6 @@ app.get("/api/medicines", async (req, res) => {
     ];
     res.status(200).json(mockInventory);
   } catch (error) {
-    console.error(error);
     res.status(500).json({ message: "Failed to fetch medicines" });
   }
 });
@@ -91,10 +87,16 @@ app.get("/", (req, res) => {
 
 const PORT = process.env.PORT || 5000;
 
+// ✅ START SERVER FIRST — regardless of DB status
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
+
+// ✅ Sync MySQL safely — no force, no alter, data is preserved
 sequelize
-  .sync({ alter: true })
+  .sync({})
   .then(async () => {
-    console.log("MySQL connected and tables synced safely.");
+    console.log("✅ MySQL connected and tables synced successfully.");
 
     try {
       const existingAdmin = await User.findOne({ where: { email: "admin@gmail.com" } });
@@ -107,15 +109,14 @@ sequelize
           role: "admin",
         });
         console.log("✅ Admin account auto-created and secured with bcrypt!");
+      } else {
+        console.log("✅ Admin account already exists.");
       }
     } catch (error) {
       console.log("⚠️ Could not verify admin account:", error.message);
     }
-
-    app.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
-    });
   })
   .catch((err) => {
-    console.log("MySQL connection failed:", err.message);
+    console.error("❌ MySQL sync failed:", err.message);
+    console.warn("⚠️ Server is running but MySQL-dependent routes will fail.");
   });
