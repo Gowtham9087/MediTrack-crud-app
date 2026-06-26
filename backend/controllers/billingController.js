@@ -1,4 +1,5 @@
 const Invoice = require("../models/mysql/Invoice");
+const { Op } = require("sequelize");
 
 exports.createInvoice = async (req, res) => {
   try {
@@ -25,9 +26,18 @@ exports.createInvoice = async (req, res) => {
       Number(labFee || 0) +
       Number(otherFee || 0);
 
-    const count = await Invoice.count();
+    // ✅ FIX: Use MAX invoiceNumber instead of count to avoid duplicates
+    const lastInvoice = await Invoice.findOne({
+      order: [["invoiceNumber", "DESC"]],
+    });
 
-    const invoiceNumber = `INV-${String(count + 1).padStart(4, "0")}`;
+    let nextNumber = 1;
+    if (lastInvoice && lastInvoice.invoiceNumber) {
+      const lastNum = parseInt(lastInvoice.invoiceNumber.replace("INV-", ""), 10);
+      if (!isNaN(lastNum)) nextNumber = lastNum + 1;
+    }
+
+    const invoiceNumber = `INV-${String(nextNumber).padStart(4, "0")}`;
 
     const invoice = await Invoice.create({
       invoiceNumber,
@@ -99,7 +109,7 @@ exports.updateInvoice = async (req, res) => {
       invoiceDate,
     });
 
-    await invoice.reload(); // ← fetches fresh data from DB after update
+    await invoice.reload(); // fetches fresh data from DB after update
 
     res.json(invoice);
   } catch (error) {
