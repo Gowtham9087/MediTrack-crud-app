@@ -58,7 +58,7 @@ function DoctorLogin() {
 
         {/* Header */}
         <div className="flex flex-col items-center mb-8 text-center">
-          <div className="w-16 h-16 rounded-2xl bg-blue-600 text-white flex items-center justify-center shadow-lg shadow-blue-500/20 mb-4">
+          <div className="w-16 h-16 rounded-2xl bg-blue-400 text-white flex items-center justify-center shadow-lg shadow-blue-500/20 mb-4">
             <Stethoscope size={32} />
           </div>
           <h1 className="text-2xl font-black text-slate-900 dark:text-white">
@@ -121,7 +121,7 @@ function DoctorLogin() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full h-[56px] bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-blue-500/20 transition-all active:scale-[0.98]"
+            className="w-full h-[56px] bg-blue-400 hover:bg-blue-500 text-white font-bold rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-blue-500/20 transition-all active:scale-[0.98]"
           >
             <LogIn size={20} />
             {loading ? "Signing in..." : "Sign In"}

@@ -304,7 +304,7 @@ function Login() {
 
                 {renderError()}
 
-                <button type="submit" disabled={loading || serverWaking} className="w-full mt-6 py-4 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-base transition-all shadow-lg shadow-blue-500/20 active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed">
+                <button type="submit" disabled={loading || serverWaking} className="w-full mt-6 py-4 rounded-2xl bg-blue-400 hover:bg-blue-500 text-white font-bold text-base transition-all shadow-lg shadow-blue-500/20 active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed">
                   {loading ? "Logging in..." : serverWaking ? `Please wait ${countdown}s...` : "Login"}
                 </button>
               </form>
@@ -330,7 +330,7 @@ function Login() {
                 {renderError()}
                 {renderSuccess()}
 
-                <button type="submit" disabled={loading} className="w-full mt-2 py-4 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-base transition-all shadow-lg shadow-blue-500/20 disabled:opacity-60">
+                <button type="submit" disabled={loading} className="w-full mt-2 py-4 rounded-2xl bg-blue-400 hover:bg-blue-500 text-white font-bold text-base transition-all shadow-lg shadow-blue-500/20 disabled:opacity-60">
                   {loading ? "Sending OTP..." : "Send OTP"}
                 </button>
                 <button type="button" onClick={() => { setStep("login"); clearMessages(); }} className="w-full mt-3 py-4 rounded-2xl border border-[#1e293b] text-slate-400 hover:text-white font-semibold text-base transition-all">
@@ -379,7 +379,7 @@ function Login() {
                 {renderError()}
                 {renderSuccess()}
 
-                <button type="submit" disabled={loading || otp.join("").length !== 6} className="w-full py-4 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-base transition-all shadow-lg shadow-blue-500/20 disabled:opacity-60">
+                <button type="submit" disabled={loading || otp.join("").length !== 6} className="w-full py-4 rounded-2xl bg-blue-400 hover:bg-blue-500 text-white font-bold text-base transition-all shadow-lg shadow-blue-500/20 disabled:opacity-60">
                   {loading ? "Verifying..." : "Verify OTP"}
                 </button>
                 <button type="button" onClick={() => { setStep("forgot"); clearMessages(); }} className="w-full mt-3 py-4 rounded-2xl border border-[#1e293b] text-slate-400 hover:text-white font-semibold text-base transition-all">

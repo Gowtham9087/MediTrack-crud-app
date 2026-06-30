@@ -122,7 +122,7 @@ function EditMedicineModal({
 
           <button
             onClick={updateMedicine}
-            className="flex items-center justify-center gap-2 bg-blue-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-blue-700 shadow-lg shadow-blue-500/20 transition-all"
+            className="flex items-center justify-center gap-2 bg-blue-400 text-white px-8 py-3 rounded-xl font-bold hover:bg-blue-500 shadow-lg shadow-blue-500/20 transition-all"
           >
             <Save size={18} />
             Update Medicine

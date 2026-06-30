@@ -109,7 +109,7 @@ function EditPatientModal({
 
           <button
             onClick={updatePatient}
-            className="flex items-center justify-center gap-2 bg-blue-600 text-white px-5 py-3 rounded-2xl font-bold hover:bg-blue-700 transition-all"
+            className="flex items-center justify-center gap-2 bg-blue-400 text-white px-5 py-3 rounded-2xl font-bold hover:bg-blue-500 transition-all"
           >
             <Save size={18} />
             Update

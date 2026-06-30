@@ -23,7 +23,7 @@ function QuickActions() {
             <Link
               key={item.label}
               to={item.to}
-              className="rounded-2xl p-4 bg-slate-100 dark:bg-slate-800 hover:bg-blue-600 hover:text-white transition-all group"
+              className="rounded-2xl p-4 bg-slate-100 dark:bg-slate-800 hover:bg-blue-400 hover:text-white transition-all group"
             >
               <Icon className="mb-3 text-blue-600 group-hover:text-white" />
               <p className="text-sm font-bold">{item.label}</p>

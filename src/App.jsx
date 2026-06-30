@@ -4,7 +4,6 @@ import { Routes, Route, Navigate, useNavigate, useLocation } from "react-router-
 import Login from "./Pages/Login";
 import Home from "./Pages/Home";
 import Patients from "./Pages/Patients";
-import UserDashboard from "./Pages/UserDashboard";
 import Feedback from "./Pages/Feedback";
 import AdminFeedback from "./Pages/AdminFeedback";
 import ActivityLogs from "./Pages/ActivityLogs";
@@ -24,13 +23,12 @@ import UserBilling from "./Pages/user/UserBilling";
 import UserCalendar from "./Pages/user/UserCalendar";
 import UserAppointments from "./Pages/user/UserAppointments";
 import UserSettings from "./Pages/user/UserSettings";
-import PatientPrescriptions from './Pages/user/PatientPrescriptions';
 
 // Doctor Pages
 import DoctorDashboard from "./Pages/doctors/DoctorDashboard";
-import DoctorLogin from "./Pages/DoctorLogin";  // ✅ NEW
+import DoctorLogin from "./Pages/DoctorLogin";
 import DoctorSettings from "./Pages/doctors/DoctorSettings";
-import DoctorPatients from "./Pages/doctors/DoctorPatients"; // ✅ NEW (placeholder for now)
+import DoctorPatients from "./Pages/doctors/DoctorPatients";
 import DashboardLayout from "./components/layout/DashboardLayout";
 
 const ProtectedRoute = ({ allowedRole, children }) => {
@@ -72,15 +70,12 @@ function App() {
     navigate("/");
   };
 
-  // Pages that should NOT show the DashboardLayout
   const noLayoutPages = ["/", "/doctor-login"];
   const showLayout = !noLayoutPages.includes(location.pathname);
 
   const appRoutes = (
     <Routes>
       <Route path="/" element={<Login />} />
-
-      {/* ✅ NEW: Doctor Login Page */}
       <Route path="/doctor-login" element={<DoctorLogin />} />
 
       {/* --- ADMIN ROUTES --- */}
@@ -103,16 +98,15 @@ function App() {
       <Route path="/doctor/patients" element={<ProtectedRoute allowedRole="doctor"><DoctorPatients /></ProtectedRoute>} />
       <Route path="/doctor/settings" element={<ProtectedRoute allowedRole="doctor"><DoctorSettings /></ProtectedRoute>} />
 
-      {/* --- PATIENT / USER ROUTES --- */}
-      <Route path="/user" element={<ProtectedRoute allowedRole="user"><UserDashboard /></ProtectedRoute>} />
+      {/* --- USER ROUTES --- */}
+      {/* /user now redirects straight to appointments — profile is in sidebar modal */}
+      <Route path="/user" element={<ProtectedRoute allowedRole="user"><Navigate to="/user/appointments" replace /></ProtectedRoute>} />
       <Route path="/feedback" element={<ProtectedRoute allowedRole="user"><Feedback /></ProtectedRoute>} />
       <Route path="/user/pharmacy" element={<ProtectedRoute allowedRole="user"><UserPharmacy /></ProtectedRoute>} />
       <Route path="/user/billing" element={<ProtectedRoute allowedRole="user"><UserBilling /></ProtectedRoute>} />
       <Route path="/user/calendar" element={<ProtectedRoute allowedRole="user"><UserCalendar /></ProtectedRoute>} />
       <Route path="/user/appointments" element={<ProtectedRoute allowedRole="user"><UserAppointments /></ProtectedRoute>} />
-      <Route path="/user/prescriptions" element={<ProtectedRoute allowedRole="user"><PatientPrescriptions /></ProtectedRoute>} /> {/* ✅ ADDED HERE */}
       <Route path="/user/settings" element={<ProtectedRoute allowedRole="user"><UserSettings /></ProtectedRoute>} />
-
 
       {/* Fallback */}
       <Route path="*" element={<Navigate to="/" replace />} />

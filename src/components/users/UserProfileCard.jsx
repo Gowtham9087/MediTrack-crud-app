@@ -7,7 +7,7 @@ import {
 
 function UserProfileCard({ patient }) {
   return (
-    <div className="bg-blue-600 dark:bg-[#0f172a] dark:border dark:border-[#1e293b] dark:shadow-none text-white rounded-3xl p-6 sm:p-8 shadow-lg shadow-blue-500/20 h-fit transition-colors duration-300">
+    <div className="bg-blue-400 dark:bg-[#0f172a] dark:border dark:border-[#1e293b] dark:shadow-none text-white rounded-3xl p-6 sm:p-8 shadow-lg shadow-blue-500/20 h-fit transition-colors duration-300">
       <div className="w-20 h-20 rounded-3xl bg-white dark:bg-[#1e293b] text-blue-600 dark:text-blue-400 flex items-center justify-center mb-5 transition-colors">
         <UserCircle size={42} />
       </div>

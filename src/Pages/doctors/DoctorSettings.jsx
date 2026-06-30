@@ -105,7 +105,7 @@ function DoctorSettings() {
               </div>
               <button
                 onClick={toggleTheme}
-                className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-6 rounded-xl transition-all shadow-md active:scale-95"
+                className="w-full sm:w-auto bg-blue-400 hover:bg-blue-500 text-white font-bold py-2.5 px-6 rounded-xl transition-all shadow-md active:scale-95"
               >
                 Switch
               </button>

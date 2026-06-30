@@ -66,7 +66,7 @@ function Settings({ darkMode, setDarkMode }) {
                 </div>
               </div>
 
-              <span className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold shadow-md shadow-blue-500/10 select-none transition-all">
+              <span className="px-4 py-2 rounded-xl bg-blue-400 hover:bg-blue-500 text-white text-sm font-bold shadow-md shadow-blue-500/10 select-none transition-all">
                 Switch
               </span>
             </button>

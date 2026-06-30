@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { 
   CalendarDays, Pill, CheckCircle2, Clock, Plus, Trash2, X, 
-  FileText, Sun, CloudSun, Moon, Coffee, ChevronDown, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight
+  FileText, Sun, CloudSun, Moon, Coffee, ChevronDown, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Check
 } from "lucide-react";
 import { API_URL } from "../../api";
 
@@ -18,8 +18,12 @@ function DoctorDashboard() {
   const [prescriptionList, setPrescriptionList] = useState([]);
   
   const [isCustomMed, setIsCustomMed] = useState(false);
-  const [medInput, setMedInput] = useState("");
-  
+  // Multi-select: array of selected medicine names from inventory
+  const [selectedMeds, setSelectedMeds] = useState([]);
+  const [customMedInput, setCustomMedInput] = useState("");
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
   const [doseQty, setDoseQty] = useState("1");
   const [doseUnit, setDoseUnit] = useState("Tablet");
   const [durationVal, setDurationVal] = useState("5");
@@ -32,13 +36,23 @@ function DoctorDashboard() {
   const [mealTiming, setMealTiming] = useState("After Food");
   const [notesInput, setNotesInput] = useState("");
 
-  // 📄 Pagination & Page Size States
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
   const currentDoctorName = localStorage.getItem("doctor_userName") || "Doctor";
   const currentDoctorId = localStorage.getItem("doctor_userId");
   const token = localStorage.getItem("doctor_token");
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handler = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setIsDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
 
   const showToast = (msg) => {
     setToast(msg);
@@ -91,30 +105,20 @@ function DoctorDashboard() {
     (app) => !prescribedAppointmentIds.has(String(app.id))
   );
 
-  // 🔢 Pagination Mathematics Configuration
   const totalItems = pendingAppointments.length;
   const totalPages = Math.ceil(totalItems / pageSize) || 1;
   
-  // Adjust safe-guard current page if items shrink
   useEffect(() => {
-    if (currentPage > totalPages) {
-      setCurrentPage(totalPages);
-    }
+    if (currentPage > totalPages) setCurrentPage(totalPages);
   }, [pageSize, totalPages, currentPage]);
 
   const startIndex = (currentPage - 1) * pageSize;
   const endIndex = Math.min(startIndex + pageSize, totalItems);
-  
-  // Slice original appointments array to represent only the current page view
   const currentPagedAppointments = pendingAppointments.slice(startIndex, startIndex + pageSize);
 
-  const handlePageSizeChange = (e) => {
-    setPageSize(Number(e.target.value));
-    setCurrentPage(1); // Always reset to page 1 when modifying size limits
-  };
-
   const resetForm = () => {
-    setMedInput("");
+    setSelectedMeds([]);
+    setCustomMedInput("");
     setDoseQty("1");
     setDoseUnit("Tablet");
     setDurationVal("5");
@@ -138,35 +142,48 @@ function DoctorDashboard() {
     setSelectedAppointment(null);
   };
 
+  const toggleMedSelection = (medName) => {
+    setSelectedMeds(prev =>
+      prev.includes(medName)
+        ? prev.filter(m => m !== medName)
+        : [...prev, medName]
+    );
+  };
+
   const handleAddMedicine = () => {
-    if (!medInput) return showToast("⚠️ Please select or type a medicine name.");
+    const medsToAdd = isCustomMed
+      ? (customMedInput.trim() ? [customMedInput.trim()] : [])
+      : selectedMeds;
+
+    if (medsToAdd.length === 0) {
+      return showToast("⚠️ Please select or enter at least one medicine.");
+    }
     if (!freqMorning && !freqAfternoon && !freqNight) {
       return showToast("⚠️ Please select at least one time of day.");
     }
 
-    let times = [];
+    const times = [];
     if (freqMorning) times.push("Morning");
     if (freqAfternoon) times.push("Afternoon");
     if (freqNight) times.push("Night");
-    
-    const formattedDosage = `${doseQty} ${doseUnit} - ${times.length} time(s) a day (${times.join(", ")})`;
 
-    const newMed = {
-      medicineName: medInput,
-      dosage: formattedDosage,
+    const newMeds = medsToAdd.map(medName => ({
+      medicineName: medName,
+      dosage: `${doseQty} ${doseUnit} - ${times.length} time(s) a day (${times.join(", ")})`,
       structuredData: {
         doseQty,
         doseUnit,
         duration: `${durationVal} ${durationUnit}`,
         schedule: times,
-        mealTiming
+        mealTiming,
       },
       notes: notesInput || "None",
       isCustom: isCustomMed,
-    };
+    }));
 
-    setPrescriptionList([...prescriptionList, newMed]);
+    setPrescriptionList(prev => [...prev, ...newMeds]);
     resetForm();
+    showToast(`✅ ${newMeds.length} medicine${newMeds.length > 1 ? "s" : ""} added to cart.`);
   };
 
   const handleRemoveMedicine = (indexToRemove) => {
@@ -217,7 +234,6 @@ function DoctorDashboard() {
       )}
 
       <div className="max-w-[1650px] mx-auto">
-        {/* HEADER */}
         <div className="mb-8">
           <p className="text-blue-500 font-bold text-sm mb-1">Doctor Portal</p>
           <h1 className="text-3xl sm:text-4xl font-black tracking-tight line-clamp-1">
@@ -228,7 +244,6 @@ function DoctorDashboard() {
           </p>
         </div>
 
-        {/* APPOINTMENTS QUEUE */}
         <div className="bg-white dark:bg-[#0f172a] rounded-[24px] border border-slate-200 dark:border-[#1e293b] p-5 sm:p-6 shadow-sm overflow-hidden">
           <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-6 pb-2 border-b border-slate-100 dark:border-[#1e293b]">
             <div className="flex items-center gap-4 w-full">
@@ -237,9 +252,7 @@ function DoctorDashboard() {
               </div>
               <div className="flex-1">
                 <h2 className="text-lg font-black">Today's Queue</h2>
-                <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Patients waiting for consultation.
-                </p>
+                <p className="text-xs text-slate-500 dark:text-slate-400">Patients waiting for consultation.</p>
               </div>
               {pendingAppointments.length > 0 && (
                 <span className="bg-blue-100 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 text-xs font-black px-3 py-1.5 rounded-full whitespace-nowrap">
@@ -249,7 +262,7 @@ function DoctorDashboard() {
             </div>
           </div>
 
-          {/* ⚡️ MOBILE VIEW */}
+          {/* MOBILE VIEW */}
           <div className="sm:hidden space-y-4">
             {currentPagedAppointments.length > 0 ? (
               currentPagedAppointments.map((app) => (
@@ -267,7 +280,7 @@ function DoctorDashboard() {
                   </p>
                   <button
                     onClick={() => openPrescriptionModal(app)}
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-all shadow-md active:scale-95"
+                    className="w-full bg-blue-400 hover:bg-blue-500 text-white text-sm font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-all shadow-md active:scale-95"
                   >
                     <Pill size={16} /> Write Prescription
                   </button>
@@ -285,7 +298,7 @@ function DoctorDashboard() {
             )}
           </div>
 
-          {/* ⚡️ DESKTOP VIEW: Perfectly Spaced Table */}
+          {/* DESKTOP VIEW */}
           <div className="hidden sm:block overflow-x-auto border border-slate-200 dark:border-[#1e293b] rounded-2xl bg-white dark:bg-[#0f172a]">
             <table className="w-full text-left border-collapse">
               <thead>
@@ -299,10 +312,7 @@ function DoctorDashboard() {
               <tbody className="divide-y divide-slate-200 dark:divide-[#1e293b]">
                 {currentPagedAppointments.length > 0 ? (
                   currentPagedAppointments.map((app) => (
-                    <tr
-                      key={app.id}
-                      className="hover:bg-slate-50 dark:hover:bg-[#1e293b]/50 transition-colors"
-                    >
+                    <tr key={app.id} className="hover:bg-slate-50 dark:hover:bg-[#1e293b]/50 transition-colors">
                       <td className="px-6 py-4 text-[14px] font-bold text-slate-900 dark:text-white whitespace-nowrap">
                         {app.Patient ? app.Patient.name : "Unknown Patient"}
                       </td>
@@ -315,7 +325,7 @@ function DoctorDashboard() {
                       <td className="pl-6 pr-12 py-4 text-right whitespace-nowrap">
                         <button
                           onClick={() => openPrescriptionModal(app)}
-                          className="inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-2.5 px-5 rounded-xl transition-all shadow-md active:scale-95"
+                          className="inline-flex items-center justify-center gap-2 bg-blue-400 hover:bg-blue-500 text-white text-xs font-bold py-2.5 px-5 rounded-xl transition-all shadow-md active:scale-95"
                         >
                           <Pill size={14} /> Write Prescription
                         </button>
@@ -336,20 +346,13 @@ function DoctorDashboard() {
                 )}
               </tbody>
             </table>
-            
-            {/* 📑 Dynamic Filter & Pagination Toolbar */}
+
             {pendingAppointments.length > 0 && (
               <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-4 border-t border-slate-200 dark:border-[#1e293b] bg-slate-50/50 dark:bg-[#0f172a] text-sm text-slate-600 dark:text-slate-400 font-medium select-none">
-                
-                {/* Left Side: Page Size Picker */}
                 <div className="flex items-center gap-2">
                   <span>Page Size:</span>
                   <div className="relative">
-                    <select
-                      value={pageSize}
-                      onChange={handlePageSizeChange}
-                      className="appearance-none bg-white dark:bg-[#020817] border border-slate-200 dark:border-[#1e293b] rounded-lg pl-3 pr-8 py-1.5 text-slate-800 dark:text-slate-200 font-bold focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
-                    >
+                    <select value={pageSize} onChange={e => { setPageSize(Number(e.target.value)); setCurrentPage(1); }} className="appearance-none bg-white dark:bg-[#020817] border border-slate-200 dark:border-[#1e293b] rounded-lg pl-3 pr-8 py-1.5 text-slate-800 dark:text-slate-200 font-bold focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer">
                       <option value={5}>5</option>
                       <option value={10}>10</option>
                       <option value={25}>25</option>
@@ -358,21 +361,18 @@ function DoctorDashboard() {
                     <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400" />
                   </div>
                 </div>
-
-                {/* Right Side: Page Counts & Controls */}
                 <div className="flex items-center gap-6">
                   <div>
                     <span className="font-bold text-slate-800 dark:text-slate-200">{totalItems === 0 ? 0 : startIndex + 1}</span> to{" "}
                     <span className="font-bold text-slate-800 dark:text-slate-200">{endIndex}</span> of{" "}
                     <span className="font-bold text-slate-800 dark:text-slate-200">{totalItems}</span>
                   </div>
-
                   <div className="flex items-center gap-1.5">
-                    <button onClick={() => setCurrentPage(1)} disabled={currentPage === 1} className="p-1.5 rounded-md border border-slate-200 dark:border-[#1e293b] bg-white dark:bg-[#020817] text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e293b] disabled:opacity-30 disabled:hover:bg-white dark:disabled:hover:bg-[#020817] transition-colors"><ChevronsLeft size={16} /></button>
-                    <button onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))} disabled={currentPage === 1} className="p-1.5 rounded-md border border-slate-200 dark:border-[#1e293b] bg-white dark:bg-[#020817] text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e293b] disabled:opacity-30 disabled:hover:bg-white dark:disabled:hover:bg-[#020817] transition-colors"><ChevronLeft size={16} /></button>
+                    <button onClick={() => setCurrentPage(1)} disabled={currentPage === 1} className="p-1.5 rounded-md border border-slate-200 dark:border-[#1e293b] bg-white dark:bg-[#020817] text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e293b] disabled:opacity-30 transition-colors"><ChevronsLeft size={16} /></button>
+                    <button onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))} disabled={currentPage === 1} className="p-1.5 rounded-md border border-slate-200 dark:border-[#1e293b] bg-white dark:bg-[#020817] text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e293b] disabled:opacity-30 transition-colors"><ChevronLeft size={16} /></button>
                     <span className="mx-2">Page <span className="font-bold text-slate-800 dark:text-slate-200">{currentPage}</span> of <span className="font-bold text-slate-800 dark:text-slate-200">{totalPages}</span></span>
-                    <button onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))} disabled={currentPage === totalPages} className="p-1.5 rounded-md border border-slate-200 dark:border-[#1e293b] bg-white dark:bg-[#020817] text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e293b] disabled:opacity-30 disabled:hover:bg-white dark:disabled:hover:bg-[#020817] transition-colors"><ChevronRight size={16} /></button>
-                    <button onClick={() => setCurrentPage(totalPages)} disabled={currentPage === totalPages} className="p-1.5 rounded-md border border-slate-200 dark:border-[#1e293b] bg-white dark:bg-[#020817] text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e293b] disabled:opacity-30 disabled:hover:bg-white dark:disabled:hover:bg-[#020817] transition-colors"><ChevronsRight size={16} /></button>
+                    <button onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))} disabled={currentPage === totalPages} className="p-1.5 rounded-md border border-slate-200 dark:border-[#1e293b] bg-white dark:bg-[#020817] text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e293b] disabled:opacity-30 transition-colors"><ChevronRight size={16} /></button>
+                    <button onClick={() => setCurrentPage(totalPages)} disabled={currentPage === totalPages} className="p-1.5 rounded-md border border-slate-200 dark:border-[#1e293b] bg-white dark:bg-[#020817] text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e293b] disabled:opacity-30 transition-colors"><ChevronsRight size={16} /></button>
                   </div>
                 </div>
               </div>
@@ -395,15 +395,11 @@ function DoctorDashboard() {
                   Patient: <span className="font-bold text-blue-500">{selectedAppointment?.Patient?.name}</span>
                 </p>
               </div>
-              <button
-                onClick={closePrescriptionModal}
-                className="p-2 bg-slate-200/50 dark:bg-[#1e293b] rounded-full text-slate-500 hover:text-slate-900 dark:hover:text-white transition-all"
-              >
+              <button onClick={closePrescriptionModal} className="p-2 bg-slate-200/50 dark:bg-[#1e293b] rounded-full text-slate-500 hover:text-slate-900 dark:hover:text-white transition-all">
                 <X size={20} />
               </button>
             </div>
 
-            {/* Modal Body */}
             <div className="flex-1 overflow-hidden flex flex-col lg:flex-row">
               
               {/* LEFT: Form */}
@@ -413,6 +409,7 @@ function DoctorDashboard() {
                 </h3>
 
                 <div className="space-y-5">
+                  {/* Inventory / Custom toggle */}
                   <div className="flex gap-4 sm:gap-6 bg-slate-50 dark:bg-[#020817] p-1.5 sm:p-2 rounded-xl w-max border border-slate-200 dark:border-[#1e293b]">
                     <label className="flex items-center gap-2 text-xs sm:text-sm font-bold cursor-pointer px-2 sm:px-3 py-1">
                       <input type="radio" checked={!isCustomMed} onChange={() => { setIsCustomMed(false); resetForm(); }} className="accent-blue-600 w-4 h-4" />
@@ -424,45 +421,92 @@ function DoctorDashboard() {
                     </label>
                   </div>
 
+                  {/* Medicine selector */}
                   <div>
-                    <label className="block text-[11px] sm:text-[12px] font-bold text-slate-500 mb-2">Medicine Name</label>
+                    <label className="block text-[11px] sm:text-[12px] font-bold text-slate-500 mb-2">
+                      Medicine Name {!isCustomMed && <span className="text-blue-500 ml-1">— select multiple</span>}
+                    </label>
+
                     {isCustomMed ? (
                       <input
                         type="text"
                         placeholder="e.g. Amoxicillin 500mg"
                         className="w-full bg-white dark:bg-[#0f172a] border border-slate-300 dark:border-[#1e293b] rounded-xl px-4 py-3 text-sm font-semibold outline-none focus:border-blue-500"
-                        value={medInput}
-                        onChange={(e) => setMedInput(e.target.value)}
+                        value={customMedInput}
+                        onChange={(e) => setCustomMedInput(e.target.value)}
                       />
                     ) : (
-                      <select
-                        className="w-full bg-white dark:bg-[#0f172a] border border-slate-300 dark:border-[#1e293b] rounded-xl px-4 py-3 text-sm font-semibold outline-none focus:border-blue-500 cursor-pointer"
-                        value={medInput}
-                        onChange={(e) => setMedInput(e.target.value)}
-                      >
-                        <option value="" disabled>-- Select from database --</option>
-                        {inventory.map((med) => (
-                          <option key={med.id} value={med.name}>
-                            {med.name} ({med.stock > 0 ? `${med.stock} in stock` : "Out of stock"})
-                          </option>
-                        ))}
-                      </select>
+                      <div className="relative" ref={dropdownRef}>
+                        {/* Trigger button */}
+                        <button
+                          type="button"
+                          onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                          className="w-full bg-white dark:bg-[#0f172a] border border-slate-300 dark:border-[#1e293b] rounded-xl px-4 py-3 text-sm font-semibold outline-none focus:border-blue-500 flex items-center justify-between text-left"
+                        >
+                          <span className={selectedMeds.length === 0 ? "text-slate-400" : "text-slate-900 dark:text-white"}>
+                            {selectedMeds.length === 0
+                              ? "-- Select medicines --"
+                              : `${selectedMeds.length} medicine${selectedMeds.length > 1 ? "s" : ""} selected`}
+                          </span>
+                          <ChevronDown size={16} className={`text-slate-400 transition-transform duration-200 ${isDropdownOpen ? "rotate-180" : ""}`} />
+                        </button>
+
+                        {/* Selected pills */}
+                        {selectedMeds.length > 0 && (
+                          <div className="flex flex-wrap gap-1.5 mt-2">
+                            {selectedMeds.map(med => (
+                              <span key={med} className="flex items-center gap-1 bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-500/20 text-[11px] font-bold px-2.5 py-1 rounded-full">
+                                {med}
+                                <button onClick={() => toggleMedSelection(med)} className="hover:text-red-500 transition-colors ml-0.5">
+                                  <X size={11} />
+                                </button>
+                              </span>
+                            ))}
+                          </div>
+                        )}
+
+                        {/* Dropdown list */}
+                        {isDropdownOpen && (
+                          <div className="absolute z-50 w-full mt-1 max-h-56 overflow-y-auto bg-white dark:bg-[#0f172a] border border-slate-200 dark:border-[#1e293b] rounded-xl shadow-xl">
+                            {inventory.length === 0 ? (
+                              <p className="text-sm text-slate-400 text-center py-4">No inventory found.</p>
+                            ) : (
+                              inventory.map((med) => {
+                                const isSelected = selectedMeds.includes(med.name);
+                                return (
+                                  <button
+                                    key={med.id}
+                                    type="button"
+                                    onClick={() => toggleMedSelection(med.name)}
+                                    className={`w-full text-left px-4 py-3 text-sm font-semibold flex items-center justify-between gap-3 border-b last:border-b-0 border-slate-100 dark:border-[#1e293b] transition-colors ${
+                                      isSelected
+                                        ? "bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400"
+                                        : "hover:bg-slate-50 dark:hover:bg-[#1e293b] text-slate-800 dark:text-slate-200"
+                                    }`}
+                                  >
+                                    <span>{med.name} <span className="text-slate-400 font-normal text-[12px]">({med.stock > 0 ? `${med.stock} in stock` : "Out of stock"})</span></span>
+                                    <span className={`w-5 h-5 rounded-md border-2 flex items-center justify-center shrink-0 transition-all ${
+                                      isSelected ? "bg-blue-500 border-blue-500" : "border-slate-300 dark:border-[#1e293b]"
+                                    }`}>
+                                      {isSelected && <Check size={12} className="text-white" strokeWidth={3} />}
+                                    </span>
+                                  </button>
+                                );
+                              })
+                            )}
+                          </div>
+                        )}
+                      </div>
                     )}
                   </div>
 
+                  {/* Dosage + Duration */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-[11px] sm:text-[12px] font-bold text-slate-500 mb-2">Dosage</label>
                       <div className="flex gap-2">
-                        <input 
-                          type="number" min="0.5" step="0.5" 
-                          className="w-16 bg-white dark:bg-[#0f172a] border border-slate-300 dark:border-[#1e293b] rounded-xl px-2 py-3 text-sm font-semibold outline-none focus:border-blue-500 text-center"
-                          value={doseQty} onChange={(e) => setDoseQty(e.target.value)}
-                        />
-                        <select 
-                          className="flex-1 bg-white dark:bg-[#0f172a] border border-slate-300 dark:border-[#1e293b] rounded-xl px-3 py-3 text-sm font-semibold outline-none focus:border-blue-500"
-                          value={doseUnit} onChange={(e) => setDoseUnit(e.target.value)}
-                        >
+                        <input type="number" min="0.5" step="0.5" className="w-16 bg-white dark:bg-[#0f172a] border border-slate-300 dark:border-[#1e293b] rounded-xl px-2 py-3 text-sm font-semibold outline-none focus:border-blue-500 text-center" value={doseQty} onChange={(e) => setDoseQty(e.target.value)} />
+                        <select className="flex-1 bg-white dark:bg-[#0f172a] border border-slate-300 dark:border-[#1e293b] rounded-xl px-3 py-3 text-sm font-semibold outline-none focus:border-blue-500" value={doseUnit} onChange={(e) => setDoseUnit(e.target.value)}>
                           <option>Tablet</option>
                           <option>Capsule</option>
                           <option>ml</option>
@@ -473,15 +517,8 @@ function DoctorDashboard() {
                     <div>
                       <label className="block text-[11px] sm:text-[12px] font-bold text-slate-500 mb-2">Duration</label>
                       <div className="flex gap-2">
-                        <input 
-                          type="number" min="1" 
-                          className="w-16 bg-white dark:bg-[#0f172a] border border-slate-300 dark:border-[#1e293b] rounded-xl px-2 py-3 text-sm font-semibold outline-none focus:border-blue-500 text-center"
-                          value={durationVal} onChange={(e) => setDurationVal(e.target.value)}
-                        />
-                        <select 
-                          className="flex-1 bg-white dark:bg-[#0f172a] border border-slate-300 dark:border-[#1e293b] rounded-xl px-3 py-3 text-sm font-semibold outline-none focus:border-blue-500"
-                          value={durationUnit} onChange={(e) => setDurationUnit(e.target.value)}
-                        >
+                        <input type="number" min="1" className="w-16 bg-white dark:bg-[#0f172a] border border-slate-300 dark:border-[#1e293b] rounded-xl px-2 py-3 text-sm font-semibold outline-none focus:border-blue-500 text-center" value={durationVal} onChange={(e) => setDurationVal(e.target.value)} />
+                        <select className="flex-1 bg-white dark:bg-[#0f172a] border border-slate-300 dark:border-[#1e293b] rounded-xl px-3 py-3 text-sm font-semibold outline-none focus:border-blue-500" value={durationUnit} onChange={(e) => setDurationUnit(e.target.value)}>
                           <option>Days</option>
                           <option>Weeks</option>
                         </select>
@@ -489,61 +526,47 @@ function DoctorDashboard() {
                     </div>
                   </div>
 
+                  {/* Schedule */}
                   <div>
                     <label className="block text-[11px] sm:text-[12px] font-bold text-slate-500 mb-2">Schedule</label>
                     <div className="grid grid-cols-3 gap-2 sm:gap-3">
-                      <button 
-                        onClick={() => setFreqMorning(!freqMorning)}
-                        className={`flex flex-col items-center gap-1 sm:gap-1.5 py-2 sm:py-3 rounded-xl border-2 transition-all ${freqMorning ? 'border-amber-400 bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400' : 'border-slate-200 dark:border-[#1e293b] bg-white dark:bg-[#0f172a] text-slate-400'}`}
-                      >
+                      <button onClick={() => setFreqMorning(!freqMorning)} className={`flex flex-col items-center gap-1 sm:gap-1.5 py-2 sm:py-3 rounded-xl border-2 transition-all ${freqMorning ? 'border-amber-400 bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400' : 'border-slate-200 dark:border-[#1e293b] bg-white dark:bg-[#0f172a] text-slate-400'}`}>
                         <Sun size={18} /> <span className="text-[10px] sm:text-xs font-bold">Morning</span>
                       </button>
-                      <button 
-                        onClick={() => setFreqAfternoon(!freqAfternoon)}
-                        className={`flex flex-col items-center gap-1 sm:gap-1.5 py-2 sm:py-3 rounded-xl border-2 transition-all ${freqAfternoon ? 'border-orange-400 bg-orange-50 dark:bg-orange-500/10 text-orange-700 dark:text-orange-400' : 'border-slate-200 dark:border-[#1e293b] bg-white dark:bg-[#0f172a] text-slate-400'}`}
-                      >
+                      <button onClick={() => setFreqAfternoon(!freqAfternoon)} className={`flex flex-col items-center gap-1 sm:gap-1.5 py-2 sm:py-3 rounded-xl border-2 transition-all ${freqAfternoon ? 'border-orange-400 bg-orange-50 dark:bg-orange-500/10 text-orange-700 dark:text-orange-400' : 'border-slate-200 dark:border-[#1e293b] bg-white dark:bg-[#0f172a] text-slate-400'}`}>
                         <CloudSun size={18} /> <span className="text-[10px] sm:text-xs font-bold">Afternoon</span>
                       </button>
-                      <button 
-                        onClick={() => setFreqNight(!freqNight)}
-                        className={`flex flex-col items-center gap-1 sm:gap-1.5 py-2 sm:py-3 rounded-xl border-2 transition-all ${freqNight ? 'border-indigo-400 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-400' : 'border-slate-200 dark:border-[#1e293b] bg-white dark:bg-[#0f172a] text-slate-400'}`}
-                      >
+                      <button onClick={() => setFreqNight(!freqNight)} className={`flex flex-col items-center gap-1 sm:gap-1.5 py-2 sm:py-3 rounded-xl border-2 transition-all ${freqNight ? 'border-indigo-400 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-400' : 'border-slate-200 dark:border-[#1e293b] bg-white dark:bg-[#0f172a] text-slate-400'}`}>
                         <Moon size={18} /> <span className="text-[10px] sm:text-xs font-bold">Night</span>
                       </button>
                     </div>
                   </div>
 
+                  {/* Meal Timing */}
                   <div>
                     <label className="block text-[11px] sm:text-[12px] font-bold text-slate-500 mb-2">Meal Timing</label>
                     <div className="flex flex-wrap gap-2 bg-slate-100 dark:bg-[#1e293b] p-1.5 rounded-xl w-max">
                       {["Before Food", "After Food", "Empty Stomach"].map((timing) => (
-                        <button
-                          key={timing}
-                          onClick={() => setMealTiming(timing)}
-                          className={`px-3 py-1.5 rounded-lg text-[11px] sm:text-xs font-bold transition-all ${mealTiming === timing ? 'bg-white dark:bg-[#0f172a] text-blue-600 dark:text-blue-400 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-                        >
+                        <button key={timing} onClick={() => setMealTiming(timing)} className={`px-3 py-1.5 rounded-lg text-[11px] sm:text-xs font-bold transition-all ${mealTiming === timing ? 'bg-white dark:bg-[#0f172a] text-blue-600 dark:text-blue-400 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
                           {timing}
                         </button>
                       ))}
                     </div>
                   </div>
 
+                  {/* Instructions */}
                   <div>
                     <label className="block text-[11px] sm:text-[12px] font-bold text-slate-500 mb-2">Instructions (Optional)</label>
-                    <input
-                      type="text"
-                      placeholder="e.g. Drink plenty of water"
-                      className="w-full bg-white dark:bg-[#0f172a] border border-slate-300 dark:border-[#1e293b] rounded-xl px-4 py-3 text-sm font-semibold outline-none focus:border-blue-500"
-                      value={notesInput}
-                      onChange={(e) => setNotesInput(e.target.value)}
-                    />
+                    <input type="text" placeholder="e.g. Drink plenty of water" className="w-full bg-white dark:bg-[#0f172a] border border-slate-300 dark:border-[#1e293b] rounded-xl px-4 py-3 text-sm font-semibold outline-none focus:border-blue-500" value={notesInput} onChange={(e) => setNotesInput(e.target.value)} />
                   </div>
 
-                  <button
-                    onClick={handleAddMedicine}
-                    className="w-full py-3.5 bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-900 font-bold rounded-xl hover:bg-blue-100 dark:hover:bg-blue-500/20 transition-all flex items-center justify-center gap-2 mt-2"
-                  >
+                  <button onClick={handleAddMedicine} className="w-full py-3.5 bg-blue-400 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-900 font-bold rounded-xl hover:bg-blue-100 dark:hover:bg-blue-500/20 transition-all flex items-center justify-center gap-2 mt-2">
                     <Plus size={18} /> Add to Patient Cart
+                    {!isCustomMed && selectedMeds.length > 1 && (
+                      <span className="bg-blue-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full ml-1">
+                        {selectedMeds.length}
+                      </span>
+                    )}
                   </button>
                 </div>
               </div>
@@ -561,16 +584,13 @@ function DoctorDashboard() {
                     <div className="space-y-3">
                       {prescriptionList.map((item, index) => (
                         <div key={index} className="bg-white dark:bg-[#0f172a] border border-slate-200 dark:border-[#1e293b] p-4 sm:p-5 rounded-2xl shadow-sm relative group">
-                          <button
-                            onClick={() => handleRemoveMedicine(index)}
-                            className="absolute top-3 right-3 p-1.5 sm:p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors opacity-100 lg:opacity-0 group-hover:opacity-100"
-                          >
+                          <button onClick={() => handleRemoveMedicine(index)} className="absolute top-3 right-3 p-1.5 sm:p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors opacity-100 lg:opacity-0 group-hover:opacity-100">
                             <Trash2 size={16} />
                           </button>
                           <div className="pr-8">
                             <h4 className="font-bold text-[14px] sm:text-[15px] flex items-center gap-2 flex-wrap">
                               {item.medicineName}
-                              {item.isCustom && <span className="text-[9px] bg-amber-100 text-amber-600 px-2 py-0.5 rounded uppercase tracking-wider mt-1 sm:mt-0">Custom</span>}
+                              {item.isCustom && <span className="text-[9px] bg-amber-100 text-amber-600 px-2 py-0.5 rounded uppercase tracking-wider">Custom</span>}
                             </h4>
                             <div className="flex flex-wrap gap-2 mt-2">
                               <div className="bg-slate-100 dark:bg-[#1e293b] text-slate-700 dark:text-slate-300 text-[10px] sm:text-xs font-semibold px-2 sm:px-3 py-1 rounded-md flex items-center gap-1">
@@ -599,10 +619,7 @@ function DoctorDashboard() {
                 </div>
 
                 <div className="mt-5 pt-5 border-t border-slate-200 dark:border-[#1e293b] sticky bottom-0 bg-slate-50 dark:bg-[#020817] pb-2">
-                  <button
-                    onClick={handleSubmitPrescription}
-                    className="w-full py-3.5 bg-blue-600 text-white font-black rounded-xl hover:bg-blue-700 transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-500/20 active:scale-95"
-                  >
+                  <button onClick={handleSubmitPrescription} className="w-full py-3.5 bg-blue-400 text-white font-black rounded-xl hover:bg-blue-500 transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-500/20 active:scale-95">
                     <CheckCircle2 size={18} /> Submit Prescription
                   </button>
                 </div>

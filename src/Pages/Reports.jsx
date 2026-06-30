@@ -97,7 +97,7 @@ function Reports() {
 
           <button 
             onClick={() => exportHospitalReport(analytics)}
-            className="h-14 px-6 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-bold flex items-center gap-2 shadow-lg shadow-blue-500/20 transition-all active:scale-[0.98]"
+            className="h-14 px-6 rounded-2xl bg-blue-400 hover:bg-blue-500 text-white font-bold flex items-center gap-2 shadow-lg shadow-blue-500/20 transition-all active:scale-[0.98]"
           >
             <Download size={20} />
             Export Report
@@ -143,7 +143,7 @@ function Reports() {
                 </div>
                 <div className="h-3 bg-[#b5b5b5] rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-blue-600 rounded-full transition-all duration-1000"
+                    className="h-full bg-blue-400 rounded-full transition-all duration-1000"
                     style={{ width: item.value }}
                   />
                 </div>

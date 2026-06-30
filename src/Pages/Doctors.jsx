@@ -179,7 +179,7 @@ function Doctors() {
 
             <button
               onClick={() => setIsAddOpen(true)}
-              className="w-full sm:w-auto h-12 px-6 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-bold flex items-center justify-center gap-2 shadow-lg shadow-blue-500/10 transition-all text-sm shrink-0"
+              className="w-full sm:w-auto h-12 px-6 rounded-2xl bg-blue-400 hover:bg-blue-500 text-white font-bold flex items-center justify-center gap-2 shadow-lg shadow-blue-500/10 transition-all text-sm shrink-0"
             >
               <Plus size={18} /> Add Doctor
             </button>

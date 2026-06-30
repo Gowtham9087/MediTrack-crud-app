@@ -106,7 +106,7 @@ function Navbar({
 
           {/* PROFILE */}
           <div className="flex items-center gap-2 bg-[#0f172a] border border-[#1e293b] rounded-xl px-2.5 py-1.5">
-            <div className="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center font-black text-xs">
+            <div className="w-8 h-8 rounded-xl bg-blue-400 text-white flex items-center justify-center font-black text-xs">
               {role === "admin"
                 ? "A"
                 : userName?.charAt(0) || "U"}

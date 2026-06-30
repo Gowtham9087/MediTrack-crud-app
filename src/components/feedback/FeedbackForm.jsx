@@ -15,7 +15,7 @@ function FeedbackForm({
       className="lg:col-span-2 bg-white dark:bg-[#0f172a] border border-slate-200 dark:border-[#1e293b] rounded-[2rem] p-6 sm:p-8 shadow-sm transition-colors duration-300"
     >
       <div className="flex items-center gap-3 mb-7">
-        <div className="w-12 h-12 rounded-2xl bg-purple-600 text-white flex items-center justify-center">
+        <div className="w-12 h-12 rounded-2xl bg-purple-400 text-white flex items-center justify-center">
           <MessageSquare size={22} />
         </div>
         <div>
@@ -50,7 +50,7 @@ function FeedbackForm({
 
       <button
         disabled={loading}
-        className="w-full mt-6 flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 active:scale-[0.98] transition-all py-4 rounded-2xl text-white font-extrabold shadow-lg shadow-blue-500/20 disabled:opacity-60"
+        className="w-full mt-6 flex items-center justify-center gap-2 bg-blue-400 hover:bg-blue-500 active:scale-[0.98] transition-all py-4 rounded-2xl text-white font-extrabold shadow-lg shadow-blue-500/20 disabled:opacity-60"
       >
         <Send size={20} />
         {loading ? "Submitting..." : "Submit Feedback"}

@@ -152,7 +152,7 @@ function DoctorPatients() {
                     onClick={() => setSelectedPatient(patient)}
                     className={`w-full text-left p-3 rounded-xl flex items-center gap-3 transition-all ${
                       selectedPatient?.id === patient.id 
-                      ? "bg-blue-600 text-white shadow-md shadow-blue-500/20" 
+                      ? "bg-blue-400 text-white shadow-md shadow-blue-500/20" 
                       : "hover:bg-slate-50 dark:hover:bg-[#1e293b] text-slate-700 dark:text-slate-300"
                     }`}
                   >

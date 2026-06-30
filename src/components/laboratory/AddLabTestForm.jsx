@@ -26,7 +26,7 @@ function AddLabTestForm({ test, setTest, addTest, labTestData, patients = [] }) 
   return (
     <div className="w-full">
       <div className="flex items-center gap-4 mb-8">
-        <div className="w-12 h-12 rounded-2xl bg-blue-600 text-white flex items-center justify-center shadow-lg shadow-blue-500/20">
+        <div className="w-12 h-12 rounded-2xl bg-blue-400 text-white flex items-center justify-center shadow-lg shadow-blue-500/20">
           <FlaskConical size={24} />
         </div>
         <div>
@@ -102,7 +102,7 @@ function AddLabTestForm({ test, setTest, addTest, labTestData, patients = [] }) 
           <p className="text-xl font-black text-blue-600 dark:text-white">₹{totalAmount}</p>
         </div>
 
-        <button type="submit" className="md:col-span-2 w-full h-[56px] bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-bold transition-all active:scale-[0.98] flex items-center justify-center gap-2 shadow-md shadow-blue-500/20">
+        <button type="submit" className="md:col-span-2 w-full h-[56px] bg-blue-400 hover:bg-blue-500 text-white rounded-2xl font-bold transition-all active:scale-[0.98] flex items-center justify-center gap-2 shadow-md shadow-blue-500/20">
           <Save size={20} /> Add Test
         </button>
       </form>

@@ -23,7 +23,7 @@ function AddMedicineForm({
   return (
     <div className="w-full">
       <div className="flex items-center gap-4 mb-8">
-        <div className="w-12 h-12 rounded-2xl bg-blue-600 text-white flex items-center justify-center shadow-lg shadow-blue-500/20">
+        <div className="w-12 h-12 rounded-2xl bg-blue-400 text-white flex items-center justify-center shadow-lg shadow-blue-500/20">
           <Pill size={24} />
         </div>
 
@@ -120,7 +120,7 @@ function AddMedicineForm({
 
         <button
           type="submit"
-          className="md:col-span-2 w-full h-[56px] mt-2 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-bold transition-all active:scale-[0.98] flex items-center justify-center gap-2 shadow-md shadow-blue-500/20"
+          className="md:col-span-2 w-full h-[56px] mt-2 bg-blue-400 hover:bg-blue-500 text-white rounded-2xl font-bold transition-all active:scale-[0.98] flex items-center justify-center gap-2 shadow-md shadow-blue-500/20"
         >
           <Save size={20} />
           Add Medicine

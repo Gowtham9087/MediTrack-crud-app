@@ -124,7 +124,7 @@ function UserMedicalForm({
 
         <button
           disabled={loading}
-          className="md:col-span-2 flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 active:scale-[0.98] transition-all duration-300 py-4 rounded-2xl text-white font-extrabold cursor-pointer shadow-lg shadow-blue-500/20 disabled:opacity-60"
+          className="md:col-span-2 flex items-center justify-center gap-2 bg-blue-400 hover:bg-blue-500 active:scale-[0.98] transition-all duration-300 py-4 rounded-2xl text-white font-extrabold cursor-pointer shadow-lg shadow-blue-500/20 disabled:opacity-60"
         >
           <Save size={20} />
 

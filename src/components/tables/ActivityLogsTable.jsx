@@ -97,7 +97,7 @@ function ActivityLogsTable({ logs }) {
                   /* ⚡️ FIXED: Made buttons slightly smaller on mobile (w-7 h-7 text-[11px]) */
                   className={`w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg text-[11px] sm:text-xs font-bold transition-all shrink-0 ${
                     p === page
-                      ? "bg-blue-600 text-white"
+                      ? "bg-blue-400 text-white"
                       : "border border-slate-200 dark:border-[#1e293b] text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-[#1e293b]"
                   }`}
                 >

@@ -3,6 +3,7 @@ const router = express.Router();
 const Prescription = require("../models/mysql/Prescription");
 const Patient = require("../models/mysql/Patient");
 const Doctor = require("../models/mysql/Doctor");
+const Appointment = require("../models/mysql/Appointment"); // ⬅️ NEW
 const authMiddleware = require("../middleware/authMiddleware");
 
 // POST /api/prescriptions — Doctor submits a prescription
@@ -14,12 +15,27 @@ router.post("/", authMiddleware, async (req, res) => {
       return res.status(400).json({ message: "Missing required fields." });
     }
 
+    console.log("📥 Incoming prescription payload:", { patientId, doctorId, appointmentId });
+
     const prescription = await Prescription.create({
       patientId,
       doctorId,
       appointmentId: appointmentId || null,
       medicines,
     });
+
+    console.log("✅ Prescription created with id:", prescription.id);
+
+    // mark the linked appointment as Completed once prescribed
+    if (appointmentId) {
+      const [affectedRows] = await Appointment.update(
+        { status: "Completed" },
+        { where: { id: appointmentId } }
+      );
+      console.log(`🔄 Appointment update — id: ${appointmentId}, rows affected: ${affectedRows}`);
+    } else {
+      console.log("⚠️ No appointmentId provided — skipping status update.");
+    }
 
     res.status(201).json({ message: "Prescription saved successfully!", prescription });
   } catch (error) {

@@ -40,7 +40,7 @@ function AddAppointmentForm({ appointment, setAppointment, patients, doctors, bo
   return (
     <div className="w-full">
       <div className="flex items-center gap-4 mb-8">
-        <div className="w-12 h-12 rounded-2xl bg-blue-600 text-white flex items-center justify-center shadow-lg shadow-blue-500/20">
+        <div className="w-12 h-12 rounded-2xl bg-blue-400 text-white flex items-center justify-center shadow-lg shadow-blue-500/20">
           <CalendarPlus size={24} />
         </div>
         <div>
@@ -109,7 +109,7 @@ function AddAppointmentForm({ appointment, setAppointment, patients, doctors, bo
                   onClick={() => setAppointment({ ...appointment, appointmentTime: slot })}
                   className={`py-2 text-xs font-bold rounded-xl border transition-all ${
                     appointment.appointmentTime === slot
-                      ? "bg-blue-600 border-blue-600 text-white shadow-md shadow-blue-500/20"
+                      ? "bg-blue-400 border-blue-600 text-white shadow-md shadow-blue-500/20"
                       : "bg-slate-50 dark:bg-[#0f172a] border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:border-blue-500 hover:text-blue-500"
                   }`}
                 >
@@ -151,7 +151,7 @@ function AddAppointmentForm({ appointment, setAppointment, patients, doctors, bo
         {/* Submit */}
         <button
           type="submit"
-          className="md:col-span-2 w-full h-[56px] mt-2 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-bold transition-all active:scale-[0.98] flex items-center justify-center gap-2 shadow-md shadow-blue-500/20"
+          className="md:col-span-2 w-full h-[56px] mt-2 bg-blue-400 hover:bg-blue-500 text-white rounded-2xl font-bold transition-all active:scale-[0.98] flex items-center justify-center gap-2 shadow-md shadow-blue-500/20"
         >
           <Clock size={20} />
           Book Appointment

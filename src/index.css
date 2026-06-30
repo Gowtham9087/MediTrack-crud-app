@@ -28,17 +28,15 @@ html.dark body {
 }
 
 /* --- 2. UNIVERSAL SLEEK SCROLLBAR ENGINE (For Sidebars & Tables) --- */
-/* Target any scrollable element globally so clunky native gray tracks never appear */
 ::-webkit-scrollbar {
-  width: 5px;  /* Vertical scrollbar thinness */
-  height: 5px; /* Horizontal table scrollbar thinness */
+  width: 5px;
+  height: 5px;
 }
 
 ::-webkit-scrollbar-track {
   background: transparent;
 }
 
-/* Scrollbar thumb style for Dark Mode */
 html.dark ::-webkit-scrollbar-thumb {
   background: #1e293b;
   border-radius: 999px;
@@ -47,7 +45,6 @@ html.dark ::-webkit-scrollbar-thumb:hover {
   background: #2563eb;
 }
 
-/* Scrollbar thumb style for Light Mode */
 html:not(.dark) ::-webkit-scrollbar-thumb {
   background: #cbd5e1;
   border-radius: 999px;
@@ -121,12 +118,13 @@ input, select, textarea {
   transition: all 0.2s ease;
 }
 
-.no-spinner::-webkit-outer-spin-button,
-.no-spinner::-webkit-inner-spin-button {
+/* Remove number input spinners globally */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
 
-.no-spinner[type="number"] {
+input[type="number"] {
   -moz-appearance: textfield;
 }

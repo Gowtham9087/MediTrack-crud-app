@@ -325,7 +325,7 @@ function Calendar() {
 
               <button 
                 type="submit"
-                className="w-full h-13 mt-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-2xl shadow-lg shadow-blue-500/10 py-3.5 transition-all active:scale-[0.99]"
+                className="w-full h-13 mt-2 bg-blue-400 hover:bg-blue-500 text-white font-bold rounded-2xl shadow-lg shadow-blue-500/10 py-3.5 transition-all active:scale-[0.99]"
               >
                 Save Roster Settings
               </button>

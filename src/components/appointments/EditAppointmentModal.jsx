@@ -42,7 +42,7 @@ function EditAppointmentModal({ editId, setEditId, editData, setEditData, patien
 
         <div className="flex flex-col sm:flex-row justify-end gap-3 mt-8">
           <button onClick={() => setEditId(null)} className="px-6 py-3 rounded-xl font-bold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all">Cancel</button>
-          <button onClick={updateAppointment} className="flex items-center justify-center gap-2 bg-blue-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-blue-700 shadow-lg shadow-blue-500/20 transition-all">
+          <button onClick={updateAppointment} className="flex items-center justify-center gap-2 bg-blue-400 text-white px-8 py-3 rounded-xl font-bold hover:bg-blue-500 shadow-lg shadow-blue-500/20 transition-all">
             <Save size={18} /> Update
           </button>
         </div>

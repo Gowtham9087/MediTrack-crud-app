@@ -76,25 +76,25 @@ function Dashboard() {
       title: "Total Patients",
       value: currentStats.totalPatients,
       icon: Users,
-      color: "bg-blue-600",
+      color: "bg-blue-400",
     },
     {
       title: "Appointments",
       value: currentStats.totalAppointments,
       icon: CalendarDays,
-      color: "bg-purple-600",
+      color: "bg-purple-400",
     },
     {
       title: "Total Revenue",
       value: `₹${Number(currentStats.totalRevenue || 0).toLocaleString("en-IN")}`,
       icon: CreditCard,
-      color: "bg-emerald-600",
+      color: "bg-emerald-400",
     },
     {
       title: "Doctors",
       value: currentStats.totalDoctors,
       icon: Stethoscope,
-      color: "bg-orange-500",
+      color: "bg-orange-400",
     },
   ];
 
@@ -210,11 +210,11 @@ function Dashboard() {
 
             <div className="flex justify-center gap-8 text-sm font-bold mt-2">
               <p>
-                <span className="text-blue-500 mr-1.5">●</span> Male{" "}
+                <span className="text-blue-400 mr-1.5">●</span> Male{" "}
                 {currentStats.maleCount || 0}
               </p>
               <p>
-                <span className="text-pink-500 mr-1.5">●</span> Female{" "}
+                <span className="text-pink-400 mr-1.5">●</span> Female{" "}
                 {currentStats.femaleCount || 0}
               </p>
             </div>
