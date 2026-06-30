@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { API_URL } from "../api";
 import { Lock, Mail, Stethoscope, Eye, EyeOff, ShieldCheck, KeyRound } from "lucide-react";
+import MorphLoading from "../components/ui/MorphLoading";
 
 function Login() {
   const navigate = useNavigate();
@@ -213,6 +214,28 @@ function Login() {
     reset:  { heading: <>Reset <br /> Password</>,                        sub: "Set a new secure password for your account." },
   };
 
+  // ─── Full-page loader while backend wakes up ─────────────────────────────────
+  if (serverWaking) {
+    return (
+      <div className="min-h-screen bg-[#020817] text-white flex flex-col items-center justify-center px-4 relative overflow-hidden">
+        <div className="absolute w-[500px] h-[500px] bg-blue-600/20 blur-[120px] rounded-full -top-40 -left-40" />
+        <div className="absolute w-[500px] h-[500px] bg-cyan-500/10 blur-[130px] rounded-full -bottom-40 -right-40" />
+        <div className="relative z-10 flex flex-col items-center">
+          <MorphLoading size="lg" />
+          <h2 className="text-2xl font-black mt-8">Medi<span className="text-blue-500">Track</span></h2>
+          <p className="text-slate-300 text-sm mt-4 font-semibold">Waking up server...</p>
+          <p className="text-slate-600 text-xs mt-1">{countdown}s remaining</p>
+          <div className="mt-5 w-full max-w-[260px] bg-[#1e293b] rounded-full h-1.5">
+            <div
+              className="bg-blue-500 h-1.5 rounded-full transition-all duration-1000"
+              style={{ width: `${((30 - countdown) / 30) * 100}%` }}
+            />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#020817] text-white flex items-center justify-center px-4 py-10 relative overflow-hidden">
       <div className="absolute w-[500px] h-[500px] bg-blue-600/20 blur-[120px] rounded-full -top-40 -left-40" />
@@ -259,21 +282,6 @@ function Login() {
                   <h1 className="text-3xl font-black">Login to Account</h1>
                 </div>
 
-                {serverWaking && (
-                  <div className="mb-4 bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 px-4 py-3 rounded-2xl text-sm text-center font-semibold">
-                    ⏳ Server is starting up, please wait...{" "}
-                    <span className="text-white font-black text-base">{countdown}s</span>
-                    <div className="mt-2 w-full bg-yellow-500/10 rounded-full h-1.5">
-                      <div className="bg-yellow-400 h-1.5 rounded-full transition-all duration-1000" style={{ width: `${((30 - countdown) / 30) * 100}%` }} />
-                    </div>
-                  </div>
-                )}
-                {!serverWaking && countdown === 0 && (
-                  <div className="mb-4 bg-green-500/10 border border-green-500/20 text-green-400 px-4 py-3 rounded-2xl text-sm text-center font-semibold">
-                    ✅ Server is ready! You can login now.
-                  </div>
-                )}
-
                 <div className="mb-4">
                   <label className="text-slate-300 text-sm font-semibold mb-2 block">Email Address</label>
                   <div className="bg-[#020817] border border-[#1e293b] rounded-2xl px-4 py-4 flex items-center gap-3 focus-within:ring-2 focus-within:ring-blue-500 transition-all">
@@ -304,8 +312,8 @@ function Login() {
 
                 {renderError()}
 
-                <button type="submit" disabled={loading || serverWaking} className="w-full mt-6 py-4 rounded-2xl bg-blue-400 hover:bg-blue-500 text-white font-bold text-base transition-all shadow-lg shadow-blue-500/20 active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed">
-                  {loading ? "Logging in..." : serverWaking ? `Please wait ${countdown}s...` : "Login"}
+                <button type="submit" disabled={loading} className="w-full mt-6 py-4 rounded-2xl bg-blue-400 hover:bg-blue-500 text-white font-bold text-base transition-all shadow-lg shadow-blue-500/20 active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed">
+                  {loading ? "Logging in..." : "Login"}
                 </button>
               </form>
             )}

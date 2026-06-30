@@ -3,19 +3,17 @@ import { Routes, Route, Navigate, useNavigate, useLocation } from "react-router-
 
 import Login from "./Pages/Login";
 import Home from "./Pages/Home";
-import Patients from "./Pages/Patients";
 import Feedback from "./Pages/Feedback";
-import AdminFeedback from "./Pages/AdminFeedback";
-import ActivityLogs from "./Pages/ActivityLogs";
 import Dashboard from "./Pages/Dashboard";
-import Doctors from "./Pages/Doctors";
-import Appointments from "./Pages/Appointments";
 import Billing from "./Pages/Billing";
 import Pharmacy from "./Pages/Pharmacy";
 import Laboratory from "./Pages/Laboratory";
-import Reports from "./Pages/Reports";
-import Calendar from "./Pages/Calendar";
 import Settings from "./Pages/Settings";
+
+// Combined Pages
+import PatientsAndDoctors from "./Pages/PatientsAndDoctors";
+import CalendarAndAppointments from "./Pages/CalendarAndAppointments";
+import ActivityPage from "./Pages/Activity";
 
 // User Pages
 import UserPharmacy from "./Pages/user/UserPharmacy";
@@ -81,16 +79,26 @@ function App() {
       {/* --- ADMIN ROUTES --- */}
       <Route path="/admin/dashboard" element={<ProtectedRoute allowedRole="admin"><Dashboard /></ProtectedRoute>} />
       <Route path="/admin/add" element={<ProtectedRoute allowedRole="admin"><Home /></ProtectedRoute>} />
-      <Route path="/admin/patients" element={<ProtectedRoute allowedRole="admin"><Patients /></ProtectedRoute>} />
+
+      {/* ⚡️ People = Patients + Doctors combined */}
+      <Route path="/admin/patients" element={<ProtectedRoute allowedRole="admin"><PatientsAndDoctors /></ProtectedRoute>} />
+      {/* old /admin/doctors URL still works, just redirects into the combined page */}
+      <Route path="/admin/doctors" element={<Navigate to="/admin/patients" replace />} />
+
+      {/* ⚡️ Schedule = Calendar + Appointments combined */}
+      <Route path="/admin/appointments" element={<ProtectedRoute allowedRole="admin"><CalendarAndAppointments /></ProtectedRoute>} />
+      {/* old /admin/calendar URL still works, just redirects into the combined page */}
+      <Route path="/admin/calendar" element={<Navigate to="/admin/appointments" replace />} />
+
+      {/* ⚡️ Activity = Reports + Feedback + Logs combined */}
+      <Route path="/admin/reports" element={<ProtectedRoute allowedRole="admin"><ActivityPage /></ProtectedRoute>} />
+      {/* old /admin/feedback and /admin/activity-logs URLs still work, just redirect into the combined page */}
+      <Route path="/admin/feedback" element={<Navigate to="/admin/reports" replace />} />
+      <Route path="/admin/activity-logs" element={<Navigate to="/admin/reports" replace />} />
+
       <Route path="/admin/billing" element={<ProtectedRoute allowedRole="admin"><Billing /></ProtectedRoute>} />
-      <Route path="/admin/doctors" element={<ProtectedRoute allowedRole="admin"><Doctors /></ProtectedRoute>} />
-      <Route path="/admin/appointments" element={<ProtectedRoute allowedRole="admin"><Appointments /></ProtectedRoute>} />
-      <Route path="/admin/feedback" element={<ProtectedRoute allowedRole="admin"><AdminFeedback /></ProtectedRoute>} />
-      <Route path="/admin/activity-logs" element={<ProtectedRoute allowedRole="admin"><ActivityLogs /></ProtectedRoute>} />
       <Route path="/admin/pharmacy" element={<ProtectedRoute allowedRole="admin"><Pharmacy /></ProtectedRoute>} />
       <Route path="/admin/laboratory" element={<ProtectedRoute allowedRole="admin"><Laboratory /></ProtectedRoute>} />
-      <Route path="/admin/reports" element={<ProtectedRoute allowedRole="admin"><Reports /></ProtectedRoute>} />
-      <Route path="/admin/calendar" element={<ProtectedRoute allowedRole="admin"><Calendar /></ProtectedRoute>} />
       <Route path="/admin/settings" element={<ProtectedRoute allowedRole="admin"><Settings darkMode={darkMode} setDarkMode={setDarkMode} /></ProtectedRoute>} />
 
       {/* --- DOCTOR ROUTES --- */}

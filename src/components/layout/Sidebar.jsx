@@ -89,18 +89,15 @@ function Sidebar({ role, logout, setMobileMenu }) {
     setLoading(false);
   };
 
+  // ⚡️ People = Patients + Doctors | Schedule = Calendar + Appointments | Activity = Reports + Feedback + Logs
   const adminLinks = [
     { name: "Dashboard", icon: LayoutDashboard, path: "/admin/dashboard" },
-    { name: "Patients", icon: Users, path: "/admin/patients" },
-    { name: "Doctors", icon: Stethoscope, path: "/admin/doctors" },
-    { name: "Appointments", icon: CalendarDays, path: "/admin/appointments" },
+    { name: "People", icon: Users, path: "/admin/patients" },
+    { name: "Schedule", icon: CalendarDays, path: "/admin/appointments" },
     { name: "Billing", icon: CreditCard, path: "/admin/billing" },
     { name: "Pharmacy", icon: Pill, path: "/admin/pharmacy" },
     { name: "Laboratory", icon: FlaskConical, path: "/admin/laboratory" },
-    { name: "Reports", icon: FileBarChart2, path: "/admin/reports" },
-    { name: "Feedback", icon: MessageSquare, path: "/admin/feedback" },
-    { name: "Logs", icon: Activity, path: "/admin/activity-logs" },
-    { name: "Calendar", icon: CalendarDays, path: "/admin/calendar" },
+    { name: "Activity", icon: Activity, path: "/admin/reports" },
     { name: "Settings", icon: Settings, path: "/admin/settings" },
   ];
 
