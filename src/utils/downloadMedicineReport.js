@@ -14,7 +14,7 @@ export const downloadMedicinePDF = (medicine) => {
     head: [["Field", "Value"]],
     body: [
       ["Medicine Name", medicine.name],
-      ["Category", medicine.category],
+      ["Category", medicine.category],  
       ["Stock", medicine.stock],
       ["Price", `Rs. ${medicine.price}`],
       ["Total Value", `Rs. ${medicine.stock * medicine.price}`],
